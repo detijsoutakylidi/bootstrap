@@ -36,6 +36,12 @@ terminal/
 └── script/
     ├── terminal-setup.sh
     └── Pro.terminal
+
+claude-code-session-sync/          # Standalone utility, no update.md
+├── create.md
+├── initial-prompt.md
+└── script/
+    └── claude-code-session-sync.php   # Run with: php claude-code-session-sync/script/claude-code-session-sync.php
 ```
 
 ## Notes
