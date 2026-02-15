@@ -29,6 +29,13 @@ vscode/
     ├── vscode-setup.sh
     ├── settings.json
     └── keybindings.json
+
+terminal/
+├── create.md
+├── update.md
+└── script/
+    ├── terminal-setup.sh
+    └── Pro.terminal
 ```
 
 ## Notes
