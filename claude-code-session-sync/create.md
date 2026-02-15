@@ -4,7 +4,9 @@ How this script was created. Unlike other setup scripts, this is a standalone ut
 
 ## Problem
 
-Claude Code's `sessions-index.json` goes stale — `.jsonl` session files exist on disk but aren't listed in the index, making them invisible to `/resume` in both CLI and VS Code. Both environments read the same index file at `~/.claude/projects/<project-id>/sessions-index.json`.
+Claude Code's `sessions-index.json` goes stale — `.jsonl` session files exist on disk but aren't listed in the index. Initial hypothesis was that both CLI and VS Code read this index for `/resume`. Investigation revealed **neither client reads `sessions-index.json`** — both scan `.jsonl` files directly via `readdirSync()`.
+
+The real problem: Terminal CLI shows fewer sessions than VS Code due to a **16KB buffer truncation bug** — see `investigation.md` for the full analysis.
 
 Related GitHub issues: #25032, #22723, #12819, #13872.
 
@@ -17,7 +19,7 @@ Explored the actual files on the machine to understand:
 - **Session storage:** `~/.claude/projects/<project-id>/<uuid>.jsonl` — one file per session, each line a JSON event (user message, assistant message, progress, file-history-snapshot, queue-operation)
 - **Session index:** `~/.claude/projects/<project-id>/sessions-index.json` — version 1 format with `entries` array and `originalPath`
 - **Project ID encoding:** path with `/` replaced by `-`, prefixed with `-` (e.g., `/Users/martin/Local Sites/setup` → `-Users-martin-Local-Sites-setup`)
-- **VS Code uses the same index** — no separate storage. The VS Code extension reads `sessions-index.json` just like the CLI does.
+- **Neither client reads the index** — both CLI and VS Code scan `.jsonl` files directly. The index appears to be legacy/unused for session discovery.
 
 ### 2. Design the sync script
 
