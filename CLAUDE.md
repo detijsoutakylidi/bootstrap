@@ -19,9 +19,26 @@ Each setup script lives in its own folder with a standard structure:
 - **update.md** — instructions for Claude to follow when syncing the script with the current machine's config. Starts with an optional revision step (cleanup + reorganize), then diffs extensions, settings, and keybindings
 - **script/** — the setup script and its config file dependencies. Config files use placeholders (e.g. `__HOME__`, `__PROJECTS_DIR__`) that get substituted at runtime
 
+### Run order
+
+1. `devbase` — system prerequisites (Xcode CLT, Homebrew, common CLI tools)
+2. `claude`, `vscode`, `terminal` — independent, any order after devbase
+
 ### Current scripts
 
 ```
+devbase/                           # Run first — base system prerequisites
+├── create.md
+├── update.md
+└── script/
+    └── devbase-setup.sh
+
+claude/                            # Claude ecosystem (Code, Desktop, CodexBar)
+├── create.md
+├── update.md
+└── script/
+    └── claude-setup.sh
+
 vscode/
 ├── create.md
 ├── update.md
