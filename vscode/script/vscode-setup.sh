@@ -92,6 +92,7 @@ install_extension "catppuccin.catppuccin-vsc"       "Catppuccin Theme"
 install_extension "alefragnani.project-manager"     "Project Manager"
 install_extension "mrmlnc.vscode-duplicate"         "Duplicate Action"
 install_extension "natizyskunk.sftp"                "SFTP"
+install_extension "johnpapa.vscode-peacock"          "Peacock"
 
 echo
 
@@ -114,7 +115,6 @@ ask_install() {
 }
 
 ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP)"
-ask_install "mehedidracula.php-namespace-resolver"   "PHP Namespace Resolver"
 ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
 ask_install "hashicorp.terraform"                    "Terraform"
 
