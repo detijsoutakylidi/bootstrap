@@ -1,0 +1,40 @@
+{
+  "$help": "Partial Windows Terminal settings — merged by terminal-setup-win.ps1",
+  "profiles": {
+    "defaults": {
+      "colorScheme": "Pro",
+      "font": {
+        "face": "Cascadia Mono",
+        "size": 18
+      },
+      "cursorShape": "filledBox",
+      "bellStyle": "none",
+      "padding": "12"
+    }
+  },
+  "schemes": [
+    {
+      "name": "Pro",
+      "background": "#000000",
+      "foreground": "#F2F2F2",
+      "cursorColor": "#4D4D4D",
+      "selectionBackground": "#414141",
+      "black":   "#000000",
+      "red":     "#FF6544",
+      "green":   "#32CD32",
+      "yellow":  "#E5BF00",
+      "blue":    "#1F98FF",
+      "purple":  "#C887FF",
+      "cyan":    "#67D9F0",
+      "white":   "#F2F2F2",
+      "brightBlack":   "#666666",
+      "brightRed":     "#FF7B6B",
+      "brightGreen":   "#A6E22E",
+      "brightYellow":  "#FFD93D",
+      "brightBlue":    "#6AB3FF",
+      "brightPurple":  "#D8A1FF",
+      "brightCyan":    "#90E4F7",
+      "brightWhite":   "#FFFFFF"
+    }
+  ]
+}

@@ -1,0 +1,86 @@
+#Requires -RunAsAdministrator
+
+#
+# Base bootstrap for a fresh Windows machine.
+#
+# Installs: winget (if missing), jq, ripgrep, gh.
+# Run this FIRST, before the Claude or VS Code scripts.
+#
+
+$ErrorActionPreference = "Stop"
+
+function Write-Info  { param($msg) Write-Host "> $msg" -ForegroundColor Blue }
+function Write-Ok    { param($msg) Write-Host "[OK] $msg" -ForegroundColor Green }
+function Write-Skip  { param($msg) Write-Host "[SKIP] $msg" -ForegroundColor Yellow }
+function Write-Fail  { param($msg) Write-Host "[FAIL] $msg" -ForegroundColor Red }
+function Write-Head  { param($msg) Write-Host "--- $msg ---" }
+
+# --- winget --------------------------------------------------
+
+Write-Head "winget (App Installer)"
+
+if (Get-Command winget -ErrorAction SilentlyContinue) {
+  Write-Skip "Already installed: $(winget --version)"
+} else {
+  Write-Info "winget not found. It ships with App Installer from the Microsoft Store."
+  Write-Info "Opening Microsoft Store page..."
+  Start-Process "ms-windows-store://pdp/?productid=9NBLGGH4NNS1"
+  Write-Fail "Install App Installer from the Store, then re-run this script."
+  exit 1
+}
+
+Write-Host ""
+
+# --- jq ------------------------------------------------------
+
+Write-Head "jq"
+
+if (Get-Command jq -ErrorAction SilentlyContinue) {
+  Write-Skip "Already installed: $(jq --version 2>&1)"
+} else {
+  Write-Info "Installing jq via winget..."
+  winget install --id jqlang.jq --accept-source-agreements --accept-package-agreements
+  Write-Ok "jq installed"
+}
+
+Write-Host ""
+
+# --- ripgrep -------------------------------------------------
+
+Write-Head "ripgrep"
+
+if (Get-Command rg -ErrorAction SilentlyContinue) {
+  Write-Skip "Already installed: $(rg --version | Select-Object -First 1)"
+} else {
+  Write-Info "Installing ripgrep via winget..."
+  winget install --id BurntSushi.ripgrep.MSVC --accept-source-agreements --accept-package-agreements
+  Write-Ok "ripgrep installed"
+}
+
+Write-Host ""
+
+# --- GitHub CLI ----------------------------------------------
+
+Write-Head "GitHub CLI"
+
+if (Get-Command gh -ErrorAction SilentlyContinue) {
+  Write-Skip "Already installed: $(gh --version | Select-Object -First 1)"
+} else {
+  Write-Info "Installing GitHub CLI via winget..."
+  winget install --id GitHub.cli --accept-source-agreements --accept-package-agreements
+  Write-Ok "GitHub CLI installed"
+}
+
+Write-Host ""
+
+# --- Summary -------------------------------------------------
+
+Write-Head "Done"
+Write-Host ""
+Write-Info "Your Windows machine is now ready for:"
+Write-Info "  .\claude-setup-win.ps1   (Claude ecosystem)"
+Write-Info "  .\vscode-setup-win.ps1   (VS Code)"
+Write-Info "  .\terminal-setup-win.ps1 (Windows Terminal)"
+Write-Host ""
+Write-Info "Manual step:"
+Write-Info "  Run: gh auth login                       - authenticate GitHub CLI"
