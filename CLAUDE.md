@@ -11,7 +11,8 @@ Each setup script lives in its own folder with a standard structure:
 ├── create.md              # How the script was created (template for new scripts)
 ├── update.md              # Claude playbook for syncing script with live config
 └── script/
-    ├── <tool>-setup.sh    # Main setup script (run with: bash <tool>/script/<tool>-setup.sh)
+    ├── <tool>-setup.sh    # macOS setup script (run with: bash <tool>/script/<tool>-setup.sh)
+    ├── <tool>-setup-win.ps1  # Windows setup script (run in PowerShell)
     └── <config-files>     # Config files, using placeholders for machine-specific values
 ```
 
@@ -21,7 +22,10 @@ Each setup script lives in its own folder with a standard structure:
 
 ### Run order
 
-1. `devbase` — system prerequisites (Xcode CLT, Homebrew, common CLI tools)
+**macOS:** `bash <tool>/script/<tool>-setup.sh`
+**Windows:** run `.\<tool>-setup-win.ps1` in PowerShell
+
+1. `devbase` — system prerequisites (macOS: Xcode CLT, Homebrew; Windows: winget, Git)
 2. `claude`, `vscode`, `terminal` — independent, any order after devbase
 
 ### Current scripts
@@ -31,28 +35,34 @@ devbase/                           # Run first — base system prerequisites
 ├── create.md
 ├── update.md
 └── script/
-    └── devbase-setup.sh
+    ├── devbase-setup.sh
+    └── devbase-setup-win.ps1
 
 claude/                            # Claude ecosystem (Code, Desktop, CodexBar)
 ├── create.md
 ├── update.md
 └── script/
-    └── claude-setup.sh
+    ├── claude-setup.sh
+    └── claude-setup-win.ps1
 
 vscode/
 ├── create.md
 ├── update.md
 └── script/
     ├── vscode-setup.sh
-    ├── settings.json
-    └── keybindings.json
+    ├── vscode-setup-win.ps1
+    ├── settings.json              # Shared (macOS + Windows, placeholders substituted at runtime)
+    ├── keybindings.json           # macOS (cmd-based)
+    └── keybindings-win.json       # Windows (ctrl-based)
 
 terminal/
 ├── create.md
 ├── update.md
 └── script/
     ├── terminal-setup.sh
-    └── Pro.terminal
+    ├── terminal-setup-win.ps1
+    ├── Pro.terminal               # macOS Terminal.app profile
+    └── windows-terminal-profile.json  # Windows Terminal color scheme + defaults
 
 claude-code-session-sync/          # Standalone utility, no update.md
 ├── create.md
@@ -63,3 +73,4 @@ claude-code-session-sync/          # Standalone utility, no update.md
 
 ## Notes
 
+- **This repo is public.** Never commit secrets, tokens, API keys, passwords, or machine-specific paths. Config files must use placeholders (`__HOME__`, etc.) — verify before every commit.
