@@ -3,7 +3,7 @@
 #
 # Base bootstrap for a fresh Windows machine.
 #
-# Installs: winget (if missing), jq, ripgrep, gh.
+# Installs: winget (if missing), jq, ripgrep, git, gh.
 # Run this FIRST, before the Claude or VS Code scripts.
 #
 
@@ -55,6 +55,20 @@ if (Get-Command rg -ErrorAction SilentlyContinue) {
   Write-Info "Installing ripgrep via winget..."
   winget install --id BurntSushi.ripgrep.MSVC --accept-source-agreements --accept-package-agreements
   Write-Ok "ripgrep installed"
+}
+
+Write-Host ""
+
+# --- Git for Windows -----------------------------------------
+
+Write-Head "Git"
+
+if (Get-Command git -ErrorAction SilentlyContinue) {
+  Write-Skip "Already installed: $(git --version)"
+} else {
+  Write-Info "Installing Git via winget..."
+  winget install --id Git.Git --accept-source-agreements --accept-package-agreements
+  Write-Ok "Git installed"
 }
 
 Write-Host ""
