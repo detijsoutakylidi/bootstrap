@@ -19,15 +19,34 @@ head()  { echo "${reset}⎯ $1 ⎯${reset}"; }
 
 head "Terminal.app Pro profile"
 
-info "Importing Pro profile..."
+PROFILE_CHANGED=$(python3 -c "
+import plistlib, subprocess, sys
 
-python3 -c "
+with open('$SCRIPT_DIR/Pro.terminal', 'rb') as f:
+    new_profile = plistlib.load(f)
+
+try:
+    result = subprocess.run(['defaults', 'export', 'com.apple.Terminal', '-'], capture_output=True)
+    prefs = plistlib.loads(result.stdout)
+    current_profile = prefs.get('Window Settings', {}).get('Pro')
+except:
+    current_profile = None
+
+if current_profile is None:
+    print('new')
+elif current_profile == new_profile:
+    print('same')
+else:
+    print('different')
+")
+
+import_profile() {
+  python3 -c "
 import plistlib, subprocess, os
 
 with open('$SCRIPT_DIR/Pro.terminal', 'rb') as f:
     profile = plistlib.load(f)
 
-prefs_file = os.path.expanduser('~/Library/Preferences/com.apple.Terminal.plist')
 try:
     result = subprocess.run(['defaults', 'export', 'com.apple.Terminal', '-'], capture_output=True)
     prefs = plistlib.loads(result.stdout)
@@ -43,10 +62,33 @@ with open('/tmp/terminal-import.plist', 'wb') as f:
 subprocess.run(['defaults', 'import', 'com.apple.Terminal', '/tmp/terminal-import.plist'], check=True)
 os.remove('/tmp/terminal-import.plist')
 "
+  defaults write com.apple.Terminal "Default Window Settings" -string "Pro"
+  defaults write com.apple.Terminal "Startup Window Settings" -string "Pro"
+}
 
-defaults write com.apple.Terminal "Default Window Settings" -string "Pro"
-defaults write com.apple.Terminal "Startup Window Settings" -string "Pro"
-ok "Pro profile imported and set as default"
+case "$PROFILE_CHANGED" in
+  new)
+    info "Importing Pro profile..."
+    import_profile
+    ok "Pro profile imported and set as default"
+    ;;
+  same)
+    skip "Pro profile already up to date"
+    ;;
+  different)
+    info "Pro profile differs from setup version."
+    read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
+    case "${choice,,}" in
+      o)
+        import_profile
+        ok "Pro profile overwritten"
+        ;;
+      *)
+        skip "Kept existing Pro profile"
+        ;;
+    esac
+    ;;
+esac
 
 echo
 

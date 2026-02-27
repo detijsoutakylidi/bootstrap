@@ -119,6 +119,31 @@ if (-not (Test-Path $VscodeConfigDir)) {
   New-Item -ItemType Directory -Path $VscodeConfigDir -Force | Out-Null
 }
 
+function Install-Config {
+  param($Content, $Dst, $Label)
+
+  if (-not (Test-Path $Dst)) {
+    Set-Content -Path $Dst -Value $Content -Encoding UTF8
+    Write-Ok "$Label installed"
+  } else {
+    $currentContent = Get-Content $Dst -Raw
+    if ($Content.TrimEnd() -eq $currentContent.TrimEnd()) {
+      Write-Skip "$Label already up to date"
+    } else {
+      Write-Info "$Label differs from setup version."
+      Write-Info "Run a diff tool to compare, or choose:"
+      Write-Host ""
+      $choice = Read-Host "> [S]kip / [O]verwrite? [s/o]"
+      if ($choice -match '^[Oo]$') {
+        Set-Content -Path $Dst -Value $Content -Encoding UTF8
+        Write-Ok "$Label overwritten"
+      } else {
+        Write-Skip "Kept existing $Label"
+      }
+    }
+  }
+}
+
 # settings.json --- substitute placeholders
 $settingsContent = Get-Content "$ScriptDir\settings.json" -Raw
 $settingsContent = $settingsContent -replace '__HOME__', ($env:USERPROFILE -replace '\\', '/')
@@ -128,12 +153,11 @@ $settingsContent = $settingsContent -replace '__PROJECTS_DIR__', ($ProjectsDir -
 $settingsContent = $settingsContent -replace '"window\.nativeFullScreen": false,\s*\n', ''
 $settingsContent = $settingsContent -replace '"editor\.multiCursorModifier": "ctrlCmd"', '"editor.multiCursorModifier": "alt"'
 
-Set-Content -Path "$VscodeConfigDir\settings.json" -Value $settingsContent -Encoding UTF8
-Write-Ok "settings.json installed"
+Install-Config -Content $settingsContent -Dst "$VscodeConfigDir\settings.json" -Label "settings.json"
 
 # keybindings --- use Windows variant (ctrl instead of cmd)
-Copy-Item "$ScriptDir\keybindings-win.json" "$VscodeConfigDir\keybindings.json" -Force
-Write-Ok "keybindings.json installed (Windows variant)"
+$keybindingsContent = Get-Content "$ScriptDir\keybindings-win.json" -Raw
+Install-Config -Content $keybindingsContent -Dst "$VscodeConfigDir\keybindings.json" -Label "keybindings.json"
 
 Write-Host ""
 

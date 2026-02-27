@@ -82,12 +82,62 @@ $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 $GitignoreSrc = Join-Path $ScriptDir "gitignore_global"
 $GitignoreDst = Join-Path $env:USERPROFILE ".gitignore_global"
 
-if (Test-Path $GitignoreSrc) {
-  Copy-Item $GitignoreSrc $GitignoreDst -Force
+if (-not (Test-Path $GitignoreSrc)) {
+  Write-Fail "gitignore_global not found in script directory"
+} elseif (-not (Test-Path $GitignoreDst)) {
+  Copy-Item $GitignoreSrc $GitignoreDst
   git config --global core.excludesFile $GitignoreDst
   Write-Ok "Global gitignore installed -> $GitignoreDst"
 } else {
-  Write-Fail "gitignore_global not found in script directory"
+  $srcContent = (Get-Content $GitignoreSrc | Where-Object { $_.Trim() -ne "" }) -join "`n"
+  $dstContent = (Get-Content $GitignoreDst | Where-Object { $_.Trim() -ne "" }) -join "`n"
+
+  if ($srcContent -eq $dstContent) {
+    git config --global core.excludesFile $GitignoreDst
+    Write-Skip "Global gitignore already up to date"
+  } else {
+    Write-Info "Current ~/.gitignore_global:"
+    Get-Content $GitignoreDst | ForEach-Object { Write-Host "    $_" }
+    Write-Host ""
+    Write-Info "New gitignore_global from setup:"
+    Get-Content $GitignoreSrc | ForEach-Object { Write-Host "    $_" }
+    Write-Host ""
+    $choice = Read-Host "> [S]kip / [O]verwrite / [M]erge entry by entry? [s/o/m]"
+    switch ($choice.ToLower()) {
+      "o" {
+        Copy-Item $GitignoreSrc $GitignoreDst -Force
+        Write-Ok "Global gitignore overwritten"
+      }
+      "m" {
+        $currentEntries = @(Get-Content $GitignoreDst | Where-Object { $_.Trim() -ne "" })
+        $newEntries = @(Get-Content $GitignoreSrc | Where-Object { $_.Trim() -ne "" })
+        $allEntries = @($currentEntries + $newEntries | Sort-Object -Unique)
+        $merged = @()
+
+        foreach ($entry in $allEntries) {
+          $inCurrent = $currentEntries -contains $entry
+          $inNew = $newEntries -contains $entry
+
+          if ($inCurrent -and $inNew) {
+            $merged += $entry
+            Write-Skip "Keep: $entry (in both)"
+          } elseif ($inCurrent) {
+            $ans = Read-Host "> Keep `"$entry`" (only in current)? [Y/n]"
+            if ($ans -ne "n" -and $ans -ne "N") { $merged += $entry }
+          } else {
+            $ans = Read-Host "> Add `"$entry`" (new from setup)? [Y/n]"
+            if ($ans -ne "n" -and $ans -ne "N") { $merged += $entry }
+          }
+        }
+        $merged | Set-Content $GitignoreDst
+        Write-Ok "Global gitignore merged"
+      }
+      default {
+        Write-Skip "Kept existing global gitignore"
+      }
+    }
+    git config --global core.excludesFile $GitignoreDst
+  }
 }
 
 Write-Host ""

@@ -126,13 +126,40 @@ head "Config files"
 
 mkdir -p "$VSCODE_CONFIG_DIR"
 
-sed -e "s|__HOME__|$HOME|g" \
-    -e "s|__PROJECTS_DIR__|$PROJECTS_DIR|g" \
-    "$SCRIPT_DIR/settings.json" > "$VSCODE_CONFIG_DIR/settings.json"
-ok "settings.json installed"
+install_config() {
+  local src_content="$1"
+  local dst="$2"
+  local label="$3"
 
-cp "$SCRIPT_DIR/keybindings.json" "$VSCODE_CONFIG_DIR/keybindings.json"
-ok "keybindings.json installed"
+  if [[ ! -f "$dst" ]]; then
+    echo "$src_content" > "$dst"
+    ok "$label installed"
+  elif diff -q <(echo "$src_content") "$dst" &>/dev/null; then
+    skip "$label already up to date"
+  else
+    info "$label differs from setup version:"
+    diff --unified=3 "$dst" <(echo "$src_content") | head -40 || true
+    echo
+    read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
+    case "${choice,,}" in
+      o)
+        echo "$src_content" > "$dst"
+        ok "$label overwritten"
+        ;;
+      *)
+        skip "Kept existing $label"
+        ;;
+    esac
+  fi
+}
+
+RENDERED_SETTINGS=$(sed -e "s|__HOME__|$HOME|g" \
+    -e "s|__PROJECTS_DIR__|$PROJECTS_DIR|g" \
+    "$SCRIPT_DIR/settings.json")
+install_config "$RENDERED_SETTINGS" "$VSCODE_CONFIG_DIR/settings.json" "settings.json"
+
+KEYBINDINGS_CONTENT=$(cat "$SCRIPT_DIR/keybindings.json")
+install_config "$KEYBINDINGS_CONTENT" "$VSCODE_CONFIG_DIR/keybindings.json" "keybindings.json"
 
 echo
 
