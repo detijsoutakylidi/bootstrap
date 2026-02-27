@@ -4,6 +4,7 @@
 # Base bootstrap for a fresh Windows machine.
 #
 # Installs: winget (if missing), jq, ripgrep, git, gh.
+# Configures: global gitignore.
 # Run this FIRST, before the Claude or VS Code scripts.
 #
 
@@ -69,6 +70,24 @@ if (Get-Command git -ErrorAction SilentlyContinue) {
   Write-Info "Installing Git via winget..."
   winget install --id Git.Git --accept-source-agreements --accept-package-agreements
   Write-Ok "Git installed"
+}
+
+Write-Host ""
+
+# --- Git global config ----------------------------------------
+
+Write-Head "Git global config"
+
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$GitignoreSrc = Join-Path $ScriptDir "gitignore_global"
+$GitignoreDst = Join-Path $env:USERPROFILE ".gitignore_global"
+
+if (Test-Path $GitignoreSrc) {
+  Copy-Item $GitignoreSrc $GitignoreDst -Force
+  git config --global core.excludesFile $GitignoreDst
+  Write-Ok "Global gitignore installed -> $GitignoreDst"
+} else {
+  Write-Fail "gitignore_global not found in script directory"
 }
 
 Write-Host ""

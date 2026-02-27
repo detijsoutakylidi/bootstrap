@@ -20,6 +20,11 @@ Run this workflow when asked to sync/update the devbase setup script, typically 
 2. Verify the Xcode CLT install method still works
 3. Check if any installed tools have changed their recommended install method
 
-### 3. Finalize
+### 3. Review global gitignore
+
+1. Compare `devbase/script/gitignore_global` against `~/.gitignore_global` on the current machine
+2. Ask the user if any new paths should be added or removed
+
+### 4. Finalize
 
 - Ask whether to commit the changes

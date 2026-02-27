@@ -3,7 +3,8 @@
 #
 # Base bootstrap for a fresh Mac.
 #
-# Installs: Xcode CLT, Rosetta 2, Homebrew, jq, ripgrep, gh.
+# Installs: Xcode CLT, Rosetta 2, Homebrew, Git, jq, ripgrep, gh.
+# Configures: global gitignore.
 # Run this FIRST, before the Claude or VS Code scripts.
 #
 
@@ -72,6 +73,39 @@ else
   fi
 
   ok "Homebrew installed"
+fi
+
+echo
+
+# ─── Git ─────────────────────────────────────────────────────
+
+head "Git"
+
+if command -v git &>/dev/null; then
+  skip "Already installed: $(git --version)"
+else
+  info "Installing Git via Homebrew…"
+  brew install git
+  ok "Git installed"
+fi
+
+echo
+
+# ─── Git global config ──────────────────────────────────────
+
+head "Git global config"
+
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+
+GITIGNORE_SRC="$SCRIPT_DIR/gitignore_global"
+GITIGNORE_DST="$HOME/.gitignore_global"
+
+if [[ -f "$GITIGNORE_SRC" ]]; then
+  cp "$GITIGNORE_SRC" "$GITIGNORE_DST"
+  git config --global core.excludesFile "$GITIGNORE_DST"
+  ok "Global gitignore installed → $GITIGNORE_DST"
+else
+  fail "gitignore_global not found in script directory"
 fi
 
 echo
