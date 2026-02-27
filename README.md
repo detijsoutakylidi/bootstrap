@@ -1,35 +1,29 @@
 # bootstrap
 
-Setup scripts for bootstrapping a new dev machine (macOS + Windows).
+Setup scripts for bootstrapping a new dev machine.
 
-## Usage
-
-### macOS
+## macOS
 
 ```bash
-# 1. Base system prerequisites (Xcode CLT, Homebrew, CLI tools)
-bash devbase/script/devbase-setup.sh
-
-# 2. Then any combination of:
-bash claude/script/claude-setup.sh
-bash vscode/script/vscode-setup.sh
-bash terminal/script/terminal-setup.sh
+bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh)
 ```
 
-### Windows
+Auto-detects admin access. On admin accounts, installs system tools + configures user environment. On standard accounts, configures only (warns about missing tools).
 
-Run in PowerShell (as Administrator for devbase):
+### Non-admin users
 
-```powershell
-# 1. Base system prerequisites (winget, Git, CLI tools)
-.\devbase-setup-win.ps1
+If you use a separate standard (non-admin) account for daily work:
 
-# 2. Then any combination of:
-.\claude-setup-win.ps1
-.\vscode-setup-win.ps1
-.\terminal-setup-win.ps1
+1. From your admin account — install system tools:
+
+```bash
+bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --install
 ```
 
-If script execution is blocked, run first: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
+2. From your standard account — configure your environment:
+
+```bash
+bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --configure
+```
 
 Each script is idempotent — safe to re-run on an already-configured machine.

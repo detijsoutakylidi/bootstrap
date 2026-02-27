@@ -31,6 +31,21 @@ Each setup script lives in its own folder with a standard structure:
 ### Current scripts
 
 ```
+bootstrap/                         # Unified — runs everything in one pass
+├── create.md
+├── update.md
+└── script/
+    ├── bootstrap.sh               # bash <(curl -fsSL <raw-url>)  OR  bash bootstrap/script/bootstrap.sh [--install | --configure]
+    └── config/
+        ├── git/
+        │   └── gitignore_global
+        ├── terminal/
+        │   └── Pro.terminal
+        └── vscode/
+            ├── settings.json
+            ├── keybindings.json
+            └── keybindings-win.json
+
 devbase/                           # Run first — base system prerequisites
 ├── create.md
 ├── update.md

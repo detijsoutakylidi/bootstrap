@@ -78,8 +78,8 @@ case "$PROFILE_CHANGED" in
   different)
     info "Pro profile differs from setup version."
     read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
-    case "${choice,,}" in
-      o)
+    case "$choice" in
+      [oO])
         import_profile
         ok "Pro profile overwritten"
         ;;

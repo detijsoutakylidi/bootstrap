@@ -117,12 +117,12 @@ else
   sed 's/^/    /' "$GITIGNORE_SRC"
   echo
   read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite / [M]erge entry by entry? [s/o/m] ")" choice
-  case "${choice,,}" in
-    o)
+  case "$choice" in
+    [oO])
       cp "$GITIGNORE_SRC" "$GITIGNORE_DST"
       ok "Global gitignore overwritten"
       ;;
-    m)
+    [mM])
       mapfile -t all_entries < <(cat "$GITIGNORE_DST" "$GITIGNORE_SRC" | grep -v '^$' | sort -u)
       mapfile -t current < <(grep -v '^$' "$GITIGNORE_DST" 2>/dev/null || true)
       MERGED=()

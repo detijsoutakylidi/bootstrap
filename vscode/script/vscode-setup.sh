@@ -141,8 +141,8 @@ install_config() {
     diff --unified=3 "$dst" <(echo "$src_content") | head -40 || true
     echo
     read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
-    case "${choice,,}" in
-      o)
+    case "$choice" in
+      [oO])
         echo "$src_content" > "$dst"
         ok "$label overwritten"
         ;;

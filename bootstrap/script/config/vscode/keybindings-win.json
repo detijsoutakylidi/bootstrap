@@ -1,0 +1,120 @@
+[
+    // panels — open sidebar views and toggle focus between panels
+    // open explorer sidebar
+    {
+        "key": "ctrl+k ctrl+e",
+        "command": "workbench.view.explorer",
+    },
+    // open source control sidebar
+    {
+        "key": "ctrl+k ctrl+g",
+        "command": "workbench.view.scm",
+    },
+    // open debug sidebar
+    {
+        "key": "ctrl+k ctrl+d",
+        "command": "workbench.view.debug",
+    },
+    // open enabled extensions list
+    {
+        "key": "ctrl+k ctrl+x",
+        "command": "workbench.extensions.action.showEnabledExtensions",
+    },
+    // show all open editors picker
+    {
+        "key": "ctrl+k ctrl+o",
+        "command": "workbench.action.showAllEditors",
+    },
+    // toggle sidebar visibility
+    {
+        "key": "ctrl+k ctrl+b",
+        "command": "workbench.action.toggleSidebarVisibility"
+    },
+    // focus editor (escape back from sidebar/terminal)
+    {
+        "key": "ctrl+e",
+        "command": "workbench.action.focusActiveEditorGroup",
+    },
+    // toggle integrated terminal
+    {
+        "key": "ctrl+t",
+        "command": "workbench.action.terminal.toggleTerminal",
+    },
+
+    // explorer — reveal and toggle file tree
+    // reveal current file in explorer, or hide sidebar if already focused
+    {
+        "key": "ctrl+\\",
+        "command": "workbench.files.action.showActiveFileInExplorer",
+        "when": "editorTextFocus",
+    },
+    {
+        "key": "ctrl+\\",
+        "command": "workbench.action.toggleSidebarVisibility",
+        "when": "explorerViewletFocus",
+    },
+
+    // code navigation — symbols, definitions, references
+    // go to symbol in current file
+    {
+        "key": "ctrl+r",
+        "command": "workbench.action.gotoSymbol",
+    },
+    // go to symbol across workspace
+    {
+        "key": "ctrl+shift+r",
+        "command": "workbench.action.showAllSymbols",
+    },
+    // find all references (replaces peek definition)
+    {
+        "key": "alt+f12",
+        "command": "-editor.action.peekDefinition",
+        "when": "editorHasDefinitionProvider && editorTextFocus && !inReferenceSearchEditor && !isInEmbeddedEditor"
+    },
+    {
+        "key": "alt+f12",
+        "command": "editor.action.referenceSearch.trigger",
+        "when": "editorHasReferenceProvider && !inReferenceSearchEditor && !isInEmbeddedEditor"
+    },
+
+    // editing — quotes, snippets
+    // toggle quotes: unbind default ctrl+' and rebind to shift+ctrl+;
+    {
+        "key": "ctrl+'",
+        "command": "-editor.togglequotes"
+    },
+    {
+        "key": "shift+ctrl+[Semicolon]",
+        "command": "editor.togglequotes"
+    },
+
+    // terminal — behavior overrides
+    // shift+enter sends escape then enter
+    {
+        "key": "shift+enter",
+        "command": "workbench.action.terminal.sendSequence",
+        "args": {
+            "text": "\u001b\r"
+        },
+        "when": "terminalFocus"
+    },
+
+    // extensions — PHP Namespace Resolver
+    // import PHP class under cursor
+    {
+        "key": "ctrl+k ctrl+i",
+        "command": "namespaceResolver.import",
+    },
+
+    // extensions — SFTP
+    // diff current file with remote version (replaces default shift+ctrl+d debug)
+    {
+        "key": "shift+ctrl+d",
+        "command": "-workbench.view.debug",
+        "when": "viewContainer.workbench.view.debug.enabled"
+    },
+    {
+        "key": "shift+ctrl+d",
+        "command": "sftp.diff.activeFile"
+    },
+]
