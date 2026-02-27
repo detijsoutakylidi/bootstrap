@@ -14,10 +14,12 @@ Auto-detects admin access. On admin accounts, installs system tools + configures
 
 If you use a separate standard (non-admin) account for daily work:
 
-1. From your admin account — install system tools:
+1. From your standard account, switch to the admin user and install system tools:
 
 ```bash
+su - adminusername
 bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --install
+exit
 ```
 
 2. From your standard account — configure your environment:
