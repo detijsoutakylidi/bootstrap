@@ -93,6 +93,7 @@ install_extension "alefragnani.project-manager"     "Project Manager"
 install_extension "mrmlnc.vscode-duplicate"         "Duplicate Action"
 install_extension "natizyskunk.sftp"                "SFTP"
 install_extension "johnpapa.vscode-peacock"          "Peacock"
+install_extension "zaaack.markdown-editor"           "Markdown Editor"
 
 echo
 

@@ -10,8 +10,13 @@
 #   bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --install
 #   bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --configure
 #
+# Run specific sections:
+#   bash bootstrap.sh --vscode                   # VS Code only (install + configure)
+#   bash bootstrap.sh --configure --terminal     # configure terminal only
+#   bash bootstrap.sh --install --base --vscode  # install base + vscode only
+#
 # Or run locally:
-#   bash bootstrap/script/bootstrap.sh [--install | --configure]
+#   bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal]
 #
 
 set -euo pipefail
@@ -63,31 +68,57 @@ skip()  { echo "${yellow}⊘${reset} $1"; }
 fail()  { echo "${red}✘${reset} $1"; }
 head()  { echo; echo "${reset}⎯ $1 ⎯${reset}"; }
 
-# ─── Mode detection ──────────────────────────────────────────
+# ─── Argument parsing ───────────────────────────────────────
 
-MODE=""
-case "${1:-}" in
-  --install)   MODE="install" ;;
-  --configure) MODE="configure" ;;
-  "")
-    if dseditgroup -o checkmember -m "$(whoami)" admin &>/dev/null; then
-      MODE="both"
-    else
-      info "Non-admin user detected — running in configure-only mode."
-      info "For system installs, run from an admin account: bash bootstrap.sh --install"
-      echo
-      MODE="configure"
-    fi
-    ;;
-  *)
-    fail "Unknown option: $1"
-    echo "Usage: bash bootstrap.sh [--install | --configure]"
-    exit 1
-    ;;
-esac
+PHASE_INSTALL=false
+PHASE_CONFIGURE=false
+SEC_BASE=false
+SEC_VSCODE=false
+SEC_CLAUDE=false
+SEC_TERMINAL=false
+SECTION_SPECIFIED=false
 
-do_install()   { [[ "$MODE" == "install" || "$MODE" == "both" ]]; }
-do_configure() { [[ "$MODE" == "configure" || "$MODE" == "both" ]]; }
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --install)   PHASE_INSTALL=true ;;
+    --configure) PHASE_CONFIGURE=true ;;
+    --base)      SEC_BASE=true; SECTION_SPECIFIED=true ;;
+    --vscode)    SEC_VSCODE=true; SECTION_SPECIFIED=true ;;
+    --claude)    SEC_CLAUDE=true; SECTION_SPECIFIED=true ;;
+    --terminal)  SEC_TERMINAL=true; SECTION_SPECIFIED=true ;;
+    *)
+      fail "Unknown option: $1"
+      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal]"
+      exit 1
+      ;;
+  esac
+  shift
+done
+
+# Default: all sections when none specified
+if ! $SECTION_SPECIFIED; then
+  SEC_BASE=true; SEC_VSCODE=true; SEC_CLAUDE=true; SEC_TERMINAL=true
+fi
+
+# Default: auto-detect phase when neither specified
+if ! $PHASE_INSTALL && ! $PHASE_CONFIGURE; then
+  if dseditgroup -o checkmember -m "$(whoami)" admin &>/dev/null; then
+    PHASE_INSTALL=true
+    PHASE_CONFIGURE=true
+  else
+    info "Non-admin user detected — running in configure-only mode."
+    info "For system installs, run from an admin account: bash bootstrap.sh --install"
+    echo
+    PHASE_CONFIGURE=true
+  fi
+fi
+
+do_install()   { $PHASE_INSTALL; }
+do_configure() { $PHASE_CONFIGURE; }
+do_base()      { $SEC_BASE; }
+do_vscode()    { $SEC_VSCODE; }
+do_claude()    { $SEC_CLAUDE; }
+do_terminal()  { $SEC_TERMINAL; }
 
 # ═══════════════════════════════════════════════════════════════
 # INSTALL PHASE
@@ -489,6 +520,7 @@ configure_vscode() {
   install_extension "mrmlnc.vscode-duplicate"         "Duplicate Action"
   install_extension "natizyskunk.sftp"                "SFTP"
   install_extension "johnpapa.vscode-peacock"          "Peacock"
+  install_extension "zaaack.markdown-editor"           "Markdown Editor"
 
   # ─── Optional extensions ───
   head "Optional extensions"
@@ -636,9 +668,20 @@ configure_claude() {
 # MAIN
 # ═══════════════════════════════════════════════════════════════
 
+PHASES=""
+$PHASE_INSTALL && PHASES="${PHASES}install "
+$PHASE_CONFIGURE && PHASES="${PHASES}configure "
+SECTIONS=""
+$SEC_BASE && SECTIONS="${SECTIONS}base "
+$SEC_VSCODE && SECTIONS="${SECTIONS}vscode "
+$SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
+$SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
+
 echo
 echo "┌─────────────────────────────────────┐"
-echo "│  macOS Bootstrap — mode: $MODE"
+echo "│  macOS Bootstrap"
+echo "│  phase: ${PHASES% }"
+echo "│  sections: ${SECTIONS% }"
 echo "└─────────────────────────────────────┘"
 
 if do_install; then
@@ -647,9 +690,9 @@ if do_install; then
   echo "  INSTALL PHASE (system-level)"
   echo "══════════════════════════════════════"
 
-  install_devbase
-  install_vscode
-  install_claude
+  if do_base;   then install_devbase; fi
+  if do_vscode; then install_vscode; fi
+  if do_claude; then install_claude; fi
 fi
 
 if do_configure; then
@@ -658,13 +701,13 @@ if do_configure; then
   echo "  CONFIGURE PHASE (user-level)"
   echo "══════════════════════════════════════"
 
-  configure_devbase
-  configure_terminal
-  configure_vscode
-  configure_claude
+  if do_base;     then configure_devbase;  fi
+  if do_terminal; then configure_terminal; fi
+  if do_vscode;   then configure_vscode;   fi
+  if do_claude;   then configure_claude;   fi
 fi
 
 echo
 head "Done"
 echo
-ok "Bootstrap complete (mode: $MODE)"
+ok "Bootstrap complete (phase: ${PHASES% }, sections: ${SECTIONS% })"

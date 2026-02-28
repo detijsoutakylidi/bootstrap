@@ -16,6 +16,7 @@ Combined from four individual setup scripts:
 - **Local fallback**: When run from a repo checkout, uses local config files instead of downloading.
 - **Temp storage**: Downloaded config files go to `mktemp -d`, cleaned up via trap on exit.
 - **Modes**: `--install` (system-level, needs admin), `--configure` (user-local, no admin), bare run auto-detects via `dseditgroup`
+- **Section filters**: `--base`, `--vscode`, `--claude`, `--terminal` — combinable with each other and with `--install`/`--configure`. No section flags = all sections.
 - **Non-admin support**: Standard macOS users run `--configure` only. An admin runs `--install` first (or the same user from their admin account).
 - **Config files**: Copies maintained independently in `bootstrap/script/config/` — not symlinks, not references to original script folders
 - **Original scripts preserved**: Individual `devbase/`, `terminal/`, `vscode/`, `claude/` scripts remain as archival reference
@@ -47,5 +48,6 @@ bootstrap/
 1. Add `install_<tool>()` function in the install phase section — skip if already installed
 2. Add `configure_<tool>()` function in the configure phase section — skip if already configured
 3. Add config files (if any) under `bootstrap/script/config/<name>/` (name matches the config's domain, e.g. `git`, `vscode`, `terminal`)
-4. Add the function calls to the main execution block in the correct order
-5. Update this create.md and update.md
+4. Add a `do_<tool>()` section guard and wire it into the main execution block
+5. Add a `--<tool>` flag to the argument parser
+6. Update this create.md and update.md
