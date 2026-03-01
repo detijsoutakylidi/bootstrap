@@ -1,6 +1,6 @@
 # bootstrap
 
-Setup scripts for bootstrapping a new dev machine.
+Setup scripts for bootstrapping a new machine with Claude in VS Code and related tools.
 
 ## macOS
 
