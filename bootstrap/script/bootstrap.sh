@@ -77,6 +77,7 @@ SEC_VSCODE=false
 SEC_CLAUDE=false
 SEC_TERMINAL=false
 SECTION_SPECIFIED=false
+EXTENDED=false
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -86,9 +87,10 @@ while [[ $# -gt 0 ]]; do
     --vscode)    SEC_VSCODE=true; SECTION_SPECIFIED=true ;;
     --claude)    SEC_CLAUDE=true; SECTION_SPECIFIED=true ;;
     --terminal)  SEC_TERMINAL=true; SECTION_SPECIFIED=true ;;
+    --extended)  EXTENDED=true ;;
     *)
       fail "Unknown option: $1"
-      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal]"
+      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]"
       exit 1
       ;;
   esac
@@ -522,26 +524,28 @@ configure_vscode() {
   install_extension "johnpapa.vscode-peacock"          "Peacock"
   install_extension "zaaack.markdown-editor"           "Markdown Editor"
 
-  # ─── Optional extensions ───
-  head "Optional extensions"
+  # ─── Optional extensions (--extended) ───
+  if $EXTENDED; then
+    head "Optional extensions"
 
-  ask_install() {
-    local ext="$1"
-    local name="$2"
-    if echo "$INSTALLED_EXTENSIONS" | grep -qi "^${ext}$"; then
-      skip "$name already installed"
-      return
-    fi
-    read -rp "$(echo "${blue}▸${reset} Install $name? [y/N] ")" answer
-    if [[ "$answer" =~ ^[Yy]$ ]]; then
-      code --install-extension "$ext" --force
-      ok "$name installed"
-    fi
-  }
+    ask_install() {
+      local ext="$1"
+      local name="$2"
+      if echo "$INSTALLED_EXTENSIONS" | grep -qi "^${ext}$"; then
+        skip "$name already installed"
+        return
+      fi
+      read -rp "$(echo "${blue}▸${reset} Install $name? [y/N] ")" answer
+      if [[ "$answer" =~ ^[Yy]$ ]]; then
+        code --install-extension "$ext" --force
+        ok "$name installed"
+      fi
+    }
 
-  ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP)"
-  ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
-  ask_install "hashicorp.terraform"                    "Terraform"
+    ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP)"
+    ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
+    ask_install "hashicorp.terraform"                    "Terraform"
+  fi
 
   # ─── Config files ───
   head "Config files"

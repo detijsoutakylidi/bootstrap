@@ -65,6 +65,7 @@ $PhaseInstall = $false
 $PhaseConfigure = $false
 $SecBase = $false; $SecVscode = $false; $SecClaude = $false; $SecTerminal = $false
 $SectionSpecified = $false
+$Extended = $false
 
 foreach ($a in $args) {
   switch ($a) {
@@ -74,9 +75,10 @@ foreach ($a in $args) {
     "--vscode"    { $SecVscode = $true; $SectionSpecified = $true }
     "--claude"    { $SecClaude = $true; $SectionSpecified = $true }
     "--terminal"  { $SecTerminal = $true; $SectionSpecified = $true }
+    "--extended"  { $Extended = $true }
     default {
       Write-Fail "Unknown option: $a"
-      Write-Host "Usage: .\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal]"
+      Write-Host "Usage: .\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]"
       exit 1
     }
   }
@@ -435,25 +437,27 @@ function Configure-Vscode {
   Install-Extension "johnpapa.vscode-peacock"         "Peacock"
   Install-Extension "zaaack.markdown-editor"          "Markdown Editor"
 
-  # ─── Optional extensions ───
-  Write-Head "Optional extensions"
+  # ─── Optional extensions (--extended) ───
+  if ($Extended) {
+    Write-Head "Optional extensions"
 
-  function Ask-Install {
-    param($ExtId, $Name)
-    if ($installedExtensions -match "(?i)^$([regex]::Escape($ExtId))$") {
-      Write-Skip "$Name already installed"
-      return
+    function Ask-Install {
+      param($ExtId, $Name)
+      if ($installedExtensions -match "(?i)^$([regex]::Escape($ExtId))$") {
+        Write-Skip "$Name already installed"
+        return
+      }
+      $answer = Read-Host "> Install $Name? [y/N]"
+      if ($answer -match '^[Yy]$') {
+        code --install-extension $ExtId --force
+        Write-Ok "$Name installed"
+      }
     }
-    $answer = Read-Host "> Install $Name? [y/N]"
-    if ($answer -match '^[Yy]$') {
-      code --install-extension $ExtId --force
-      Write-Ok "$Name installed"
-    }
+
+    Ask-Install -ExtId "bmewburn.vscode-intelephense-client" -Name "Intelephense (PHP)"
+    Ask-Install -ExtId "britesnow.vscode-toggle-quotes"     -Name "Toggle Quotes"
+    Ask-Install -ExtId "hashicorp.terraform"                 -Name "Terraform"
   }
-
-  Ask-Install -ExtId "bmewburn.vscode-intelephense-client" -Name "Intelephense (PHP)"
-  Ask-Install -ExtId "britesnow.vscode-toggle-quotes"     -Name "Toggle Quotes"
-  Ask-Install -ExtId "hashicorp.terraform"                 -Name "Terraform"
 
   # ─── Config files ───
   Write-Head "Config files"

@@ -4,8 +4,10 @@ Project for creating and updating setup scripts
 
 ## Structure
 
+Project root is the repo root. Scripts live under `bootstrap/`.
+
 ```
-bootstrap/                         # Unified setup — one script per platform
+bootstrap/                         # Subdirectory (not the project root)
 ├── create.md                      # How the scripts were created
 ├── update.md                      # Claude playbook for syncing with live config
 └── script/
@@ -25,8 +27,8 @@ bootstrap/                         # Unified setup — one script per platform
 
 ### Run
 
-**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal]`
-**Windows:** `.\bootstrap\script\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal]`
+**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]`
+**Windows:** `.\bootstrap\script\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]`
 
 Both scripts auto-detect admin status, are idempotent, and support cloud install (see README).
 
