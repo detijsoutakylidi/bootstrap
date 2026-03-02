@@ -1,10 +1,10 @@
 # Bootstrap — Update Playbook
 
-Instructions for Claude Code to follow when syncing the bootstrap script with the current machine's config.
+Instructions for Claude Code to follow when syncing the bootstrap scripts with the current machine's config.
 
 ## When to Use
 
-Run this workflow when asked to sync/update the bootstrap script, typically after changing VS Code config, terminal settings, extensions, or brew packages on the live machine.
+Run this workflow when asked to sync/update the bootstrap scripts, typically after changing VS Code config, terminal settings, extensions, or packages on the live machine.
 
 ## Step 0. Offer Config Revision
 
@@ -33,7 +33,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 
 **Back up files before revision changes (copy to `.bak`).**
 
-## Steps
+## macOS Steps
 
 ### 1. Compare brew packages
 
@@ -45,6 +45,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 1. Run `code --list-extensions` and compare against essential + optional lists in `configure_vscode()`
 2. Present table: in script but not installed (remove?), installed but not in script (add?)
 3. Ask for each diff: add to essential, optional, or skip
+4. **Update both `bootstrap.sh` and `bootstrap.ps1`** extension lists to keep them in sync
 
 ### 3. Compare VS Code settings
 
@@ -57,6 +58,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 1. Read live `~/Library/Application Support/Code/User/keybindings.json`
 2. Diff against `bootstrap/script/config/vscode/keybindings.json`
 3. Show diffs, update with approved changes
+4. Ask whether changes also apply to `keybindings-win.json` (often yes for non-modifier changes)
 
 ### 5. Compare Terminal.app profile
 
@@ -78,11 +80,38 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 ### 8. Check install methods
 
 1. Verify Homebrew install URL is current
-2. Verify Claude Code native installer URL works
+2. Verify Claude Code native installer URL works (`https://claude.ai/install.sh` for macOS, `https://claude.ai/install.ps1` for Windows)
 3. Verify brew cask names haven't changed (`visual-studio-code`, `claude`, `steipete/tap/codexbar`)
-4. Verify Chrome Web Store extension URL is valid
+4. Verify winget IDs haven't changed (`Microsoft.VisualStudioCode`, `Anthropic.Claude`, `Git.Git`, etc.)
+5. Verify Chrome Web Store extension URL is valid
 
 ### 9. Finalize
 
 - Verify `config/vscode/settings.json` still has `__HOME__` and `__PROJECTS_DIR__` placeholders
+- Verify `bootstrap.ps1` extension lists match `bootstrap.sh`
 - Ask whether to commit the changes
+
+## Windows-Specific Steps
+
+When syncing from a Windows machine (or asked to update the Windows script specifically):
+
+### W1. Compare winget packages
+
+1. Compare against Install-Base in `bootstrap.ps1`
+2. Ask if any new packages should be added
+
+### W2. Compare Windows Terminal profile
+
+1. Read live Windows Terminal `settings.json`
+2. Compare against `bootstrap/script/config/terminal/windows-terminal-profile.json`
+3. Show diffs in color scheme and profile defaults
+
+### W3. Compare PowerShell prompt
+
+1. Read `$PROFILE.CurrentUserAllHosts`
+2. Compare against the prompt block in `Configure-Terminal` in `bootstrap.ps1`
+
+### W4. Compare file associations
+
+1. Check current file associations for the 10 extensions
+2. Compare against the list in `Install-Vscode` in `bootstrap.ps1`

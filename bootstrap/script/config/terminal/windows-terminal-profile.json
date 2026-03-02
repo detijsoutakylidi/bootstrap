@@ -1,5 +1,5 @@
 {
-  "$help": "Partial Windows Terminal settings — merged by terminal-setup-win.ps1",
+  "$help": "Partial Windows Terminal settings — merged by bootstrap.ps1",
   "profiles": {
     "defaults": {
       "colorScheme": "Pro",
