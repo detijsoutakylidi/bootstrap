@@ -21,12 +21,6 @@ bootstrap/                         # Unified setup — one script per platform
             ├── settings.json          # Shared (placeholders substituted at runtime)
             ├── keybindings.json       # macOS (cmd-based)
             └── keybindings-win.json   # Windows (ctrl-based)
-
-claude-code-session-sync/          # Standalone utility, no update.md
-├── create.md
-├── initial-prompt.md
-└── script/
-    └── claude-code-session-sync.php
 ```
 
 ### Run
