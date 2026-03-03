@@ -545,6 +545,7 @@ configure_vscode() {
     ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP)"
     ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
     ask_install "hashicorp.terraform"                    "Terraform"
+    ask_install "highagency.pencildev"                   "Pencil"
   fi
 
   # ─── Config files ───

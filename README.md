@@ -34,7 +34,7 @@ Combinable with `--install` / `--configure` and with each other. No section flag
 
 ### `--extended`
 
-Enables interactive prompts for optional items (e.g., optional VS Code extensions like Intelephense, Toggle Quotes, Terraform). Without this flag, only essential items are installed.
+Enables interactive prompts for optional items (e.g., optional VS Code extensions like Intelephense, Toggle Quotes, Terraform, Pencil). Without this flag, only essential items are installed.
 
 ### Non-admin users
 
@@ -96,7 +96,7 @@ Each script is idempotent — safe to re-run on an already-configured machine.
 - macOS: `code` CLI in PATH
 - Projects directory (default: `~/Projects`)
 - Essential extensions: Claude Code, Catppuccin Theme, Project Manager, Duplicate Action, SFTP, Peacock, Markdown Editor
-- Optional extensions (with `--extended`): Intelephense (PHP), Toggle Quotes, Terraform
+- Optional extensions (with `--extended`): Intelephense (PHP), Toggle Quotes, Terraform, Pencil
 - `settings.json` and `keybindings.json` with skip/overwrite options
 - macOS: file associations (.json, .xml, .js, .vtt, .md, .jsonl, .srt, .pub, .tf, .tfstate via duti)
 

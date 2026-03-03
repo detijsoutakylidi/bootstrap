@@ -457,6 +457,7 @@ function Configure-Vscode {
     Ask-Install -ExtId "bmewburn.vscode-intelephense-client" -Name "Intelephense (PHP)"
     Ask-Install -ExtId "britesnow.vscode-toggle-quotes"     -Name "Toggle Quotes"
     Ask-Install -ExtId "hashicorp.terraform"                 -Name "Terraform"
+    Ask-Install -ExtId "highagency.pencildev"                -Name "Pencil"
   }
 
   # ─── Config files ───
