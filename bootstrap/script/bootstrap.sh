@@ -523,6 +523,7 @@ configure_vscode() {
   install_extension "natizyskunk.sftp"                "SFTP"
   install_extension "johnpapa.vscode-peacock"          "Peacock"
   install_extension "zaaack.markdown-editor"           "Markdown Editor"
+  install_extension "tomoki1207.pdf"                   "PDF Viewer"
 
   # ─── Optional extensions (--extended) ───
   if $EXTENDED; then

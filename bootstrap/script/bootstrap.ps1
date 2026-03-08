@@ -436,6 +436,7 @@ function Configure-Vscode {
   Install-Extension "natizyskunk.sftp"                "SFTP"
   Install-Extension "johnpapa.vscode-peacock"         "Peacock"
   Install-Extension "zaaack.markdown-editor"          "Markdown Editor"
+  Install-Extension "tomoki1207.pdf"                  "PDF Viewer"
 
   # ─── Optional extensions (--extended) ───
   if ($Extended) {
