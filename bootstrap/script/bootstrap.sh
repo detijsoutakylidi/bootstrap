@@ -546,6 +546,7 @@ configure_vscode() {
     ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
     ask_install "hashicorp.terraform"                    "Terraform"
     ask_install "highagency.pencildev"                   "Pencil"
+    ask_install "1password.op-vscode"                    "1Password"
   fi
 
   # ─── Config files ───

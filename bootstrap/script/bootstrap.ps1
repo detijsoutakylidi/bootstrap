@@ -458,6 +458,7 @@ function Configure-Vscode {
     Ask-Install -ExtId "britesnow.vscode-toggle-quotes"     -Name "Toggle Quotes"
     Ask-Install -ExtId "hashicorp.terraform"                 -Name "Terraform"
     Ask-Install -ExtId "highagency.pencildev"                -Name "Pencil"
+    Ask-Install -ExtId "1password.op-vscode"                 -Name "1Password"
   }
 
   # ─── Config files ───
