@@ -40,6 +40,9 @@ bootstrap/
         ├── terminal/
         │   ├── Pro.terminal                    # macOS Terminal.app profile
         │   └── windows-terminal-profile.json   # Windows Terminal color scheme + defaults
+        ├── codexbar/
+        │   ├── config.json            # Provider config (~/.codexbar/config.json)
+        │   └── defaults.plist         # App preferences (defaults domain, merged on import)
         └── vscode/
             ├── settings.json          # Shared, uses __HOME__ / __PROJECTS_DIR__ placeholders
             ├── keybindings.json       # macOS (cmd-based)

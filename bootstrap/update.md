@@ -77,7 +77,15 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 1. Diff `bootstrap/script/config/git/gitignore_global` against `~/.gitignore_global`
 2. Ask if entries should be added or removed
 
-### 8. Check install methods
+### 8. Compare CodexBar config
+
+1. Diff `~/.codexbar/config.json` against `bootstrap/script/config/codexbar/config.json`
+2. Show diffs, update stored file with approved changes
+3. Export current preferences: `defaults export com.steipete.codexbar /tmp/codexbar-current.plist`
+4. Compare against `bootstrap/script/config/codexbar/defaults.plist` — ignore machine-specific keys (keychain fingerprints, OAuth timestamps, window frames, NSStatusItem positions, Sparkle update state)
+5. Show meaningful diffs, update stored plist with approved changes
+
+### 9. Check install methods
 
 1. Verify Homebrew install URL is current
 2. Verify Claude Code native installer URL works (`https://claude.ai/install.sh` for macOS, `https://claude.ai/install.ps1` for Windows)
@@ -85,7 +93,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 4. Verify winget IDs haven't changed (`Microsoft.VisualStudioCode`, `Anthropic.Claude`, `Git.Git`, etc.)
 5. Verify Chrome Web Store extension URL is valid
 
-### 9. Finalize
+### 10. Finalize
 
 - Verify `config/vscode/settings.json` still has `__HOME__` and `__PROJECTS_DIR__` placeholders
 - Verify `bootstrap.ps1` extension lists match `bootstrap.sh`

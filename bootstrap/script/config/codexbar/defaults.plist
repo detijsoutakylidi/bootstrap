@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>claudeWebExtrasEnabled</key>
+	<false/>
+	<key>debugDisableKeychainAccess</key>
+	<false/>
+	<key>debugLogLevel</key>
+	<string>verbose</string>
+	<key>launchAtLogin</key>
+	<true/>
+	<key>menuBarDisplayMode</key>
+	<string>percent</string>
+	<key>menuBarShowsBrandIconWithPercent</key>
+	<true/>
+	<key>mergeIcons</key>
+	<true/>
+	<key>openAIWebAccessEnabled</key>
+	<false/>
+	<key>refreshFrequency</key>
+	<string>fiveMinutes</string>
+	<key>sessionQuotaNotificationsEnabled</key>
+	<true/>
+	<key>showOptionalCreditsAndExtraUsage</key>
+	<true/>
+	<key>tokenCostUsageEnabled</key>
+	<true/>
+	<key>updateChannel</key>
+	<string>beta</string>
+	<key>usageBarsShowUsed</key>
+	<true/>
+</dict>
+</plist>

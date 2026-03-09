@@ -1,0 +1,10 @@
+{
+  "providers": [
+    {
+      "enabled": true,
+      "id": "claude",
+      "source": "cli"
+    }
+  ],
+  "version": 1
+}

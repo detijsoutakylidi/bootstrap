@@ -660,13 +660,52 @@ configure_claude() {
   open 'https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn' 2>/dev/null || true
   ok "Chrome Web Store opened — install manually"
 
+  # ─── CodexBar config ───
+  head "CodexBar config"
+
+  CODEXBAR_SRC="$(fetch_config "codexbar/config.json")"
+  CODEXBAR_DST="$HOME/.codexbar/config.json"
+
+  if [[ -z "$CODEXBAR_SRC" || ! -f "$CODEXBAR_SRC" ]]; then
+    fail "codexbar/config.json not found (local or remote)"
+  elif [[ ! -f "$CODEXBAR_DST" ]]; then
+    mkdir -p "$HOME/.codexbar"
+    cp "$CODEXBAR_SRC" "$CODEXBAR_DST"
+    ok "CodexBar config installed → $CODEXBAR_DST"
+  elif diff -q "$CODEXBAR_SRC" "$CODEXBAR_DST" &>/dev/null; then
+    skip "CodexBar config already up to date"
+  else
+    info "CodexBar config differs from setup version."
+    read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
+    case "$choice" in
+      [oO])
+        cp "$CODEXBAR_SRC" "$CODEXBAR_DST"
+        ok "CodexBar config overwritten"
+        ;;
+      *)
+        skip "Kept existing CodexBar config"
+        ;;
+    esac
+  fi
+
+  # ─── CodexBar preferences ───
+  head "CodexBar preferences"
+
+  CODEXBAR_PLIST="$(fetch_config "codexbar/defaults.plist")"
+
+  if [[ -z "$CODEXBAR_PLIST" || ! -f "$CODEXBAR_PLIST" ]]; then
+    fail "codexbar/defaults.plist not found (local or remote)"
+  else
+    defaults import com.steipete.codexbar "$CODEXBAR_PLIST"
+    ok "CodexBar preferences merged"
+  fi
+
   # ─── Manual steps ───
   head "Manual steps needed"
   echo
   info "Run: claude login                       → authenticate Claude Code"
   info "Run: gh auth login                      → authenticate GitHub CLI"
   info "Open Claude.app                         → sign in with your account"
-  info "Open CodexBar                           → enable Claude provider in Settings → Providers"
   info "Chrome Web Store                        → click \"Add to Chrome\" if not done"
   info "Claude Desktop → Settings → Connectors  → enable Claude in Chrome connector"
 }
