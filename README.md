@@ -58,13 +58,19 @@ bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --configure
 
 **Windows:**
 
-1. Run PowerShell as Administrator and install system tools:
+1. Open an admin PowerShell from a normal PowerShell:
+
+```powershell
+Start-Process powershell -Verb RunAs
+```
+
+2. In the admin PowerShell, install system tools:
 
 ```powershell
 & ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1))) --install
 ```
 
-2. From a normal PowerShell — configure your environment:
+3. From a normal PowerShell — configure your environment:
 
 ```powershell
 & ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1))) --configure
