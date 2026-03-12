@@ -55,3 +55,5 @@ echo "  - CLAUDE.md created"
 echo "  - CLAUDE-djtl-global..md symlinked -> $GLOBAL_DJTL"
 echo "  - CLAUDE-personal-global..md symlinked -> $GLOBAL_PERSONAL"
 echo "  - CLAUDE-personal-project..md created (gitignored)"
+
+open -a "Visual Studio Code" .

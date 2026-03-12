@@ -1,3 +1,3 @@
-# Personal — {{PROJECT_NAME}}
+# {{PROJECT_NAME}} - personal scope
 
-Personal project-level overrides. This file is not shared.
+Your personal project-level instruction for Claude belong here. This file is not shared.
