@@ -862,9 +862,16 @@ $SEC_VSCODE && SECTIONS="${SECTIONS}vscode "
 $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
+# Detect version (git commit when run from checkout, "remote" otherwise)
+if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null; then
+  BOOTSTRAP_VERSION=$(git -C "$SCRIPT_DIR" rev-parse --short HEAD 2>/dev/null || echo "unknown")
+else
+  BOOTSTRAP_VERSION="remote"
+fi
+
 echo
 echo "┌─────────────────────────────────────┐"
-echo "│  macOS Bootstrap"
+echo "│  macOS Bootstrap ($BOOTSTRAP_VERSION)"
 echo "│  phase: ${PHASES% }"
 echo "│  sections: ${SECTIONS% }"
 echo "└─────────────────────────────────────┘"

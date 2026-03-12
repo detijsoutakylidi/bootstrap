@@ -700,9 +700,16 @@ if ($SecVscode) { $sections += "vscode" }
 if ($SecClaude) { $sections += "claude" }
 if ($SecTerminal) { $sections += "terminal" }
 
+# Detect version (git commit when run from checkout, "remote" otherwise)
+$BootstrapVersion = "remote"
+if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
+  try { $BootstrapVersion = git -C $ScriptDir rev-parse --short HEAD 2>$null } catch {}
+  if (-not $BootstrapVersion) { $BootstrapVersion = "unknown" }
+}
+
 Write-Host ""
 Write-Host "+-------------------------------------+"
-Write-Host "|  Windows Bootstrap"
+Write-Host "|  Windows Bootstrap ($BootstrapVersion)"
 Write-Host "|  phase: $($phases -join ' ')"
 Write-Host "|  sections: $($sections -join ' ')"
 Write-Host "+-------------------------------------+"
