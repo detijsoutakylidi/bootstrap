@@ -18,6 +18,19 @@
 	<true/>
 	<key>openAIWebAccessEnabled</key>
 	<false/>
+	<key>providerDetectionCompleted</key>
+	<true/>
+	<key>providerToggles</key>
+	<dict>
+		<key>antigravity</key>
+		<false/>
+		<key>claude</key>
+		<true/>
+		<key>codex</key>
+		<false/>
+		<key>gemini</key>
+		<false/>
+	</dict>
 	<key>refreshFrequency</key>
 	<string>fiveMinutes</string>
 	<key>sessionQuotaNotificationsEnabled</key>

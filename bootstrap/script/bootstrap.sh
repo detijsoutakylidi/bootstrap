@@ -700,6 +700,75 @@ configure_claude() {
     ok "CodexBar preferences merged"
   fi
 
+  # ─── Claude Code company rules ───
+  head "Claude Code company rules"
+
+  DJTL_SRC="$(fetch_config "claude/CLAUDE-djtl.md")"
+  DJTL_DST="$HOME/.claude/CLAUDE-djtl.md"
+
+  if [[ -z "$DJTL_SRC" || ! -f "$DJTL_SRC" ]]; then
+    fail "claude/CLAUDE-djtl.md not found (local or remote)"
+  else
+    mkdir -p "$HOME/.claude"
+    cp "$DJTL_SRC" "$DJTL_DST"
+    ok "CLAUDE-djtl.md deployed → $DJTL_DST"
+  fi
+
+  # ─── Global CLAUDE.md ───
+  head "Global CLAUDE.md"
+
+  GLOBAL_CLAUDE="$HOME/.claude/CLAUDE.md"
+  if [[ ! -f "$GLOBAL_CLAUDE" ]]; then
+    cat > "$GLOBAL_CLAUDE" << 'CLAUDEEOF'
+@CLAUDE-djtl.md
+
+# Personal
+
+TODO: Add your personal preferences and communication style here.
+CLAUDEEOF
+    ok "Created ~/.claude/CLAUDE.md with @CLAUDE-djtl.md inclusion"
+  elif ! grep -q "@CLAUDE-djtl.md" "$GLOBAL_CLAUDE" 2>/dev/null; then
+    info "~/.claude/CLAUDE.md exists but does not include @CLAUDE-djtl.md"
+    info "Adding @CLAUDE-djtl.md inclusion at the top…"
+    TMPFILE="$(mktemp)"
+    echo "@CLAUDE-djtl.md" > "$TMPFILE"
+    echo "" >> "$TMPFILE"
+    cat "$GLOBAL_CLAUDE" >> "$TMPFILE"
+    mv "$TMPFILE" "$GLOBAL_CLAUDE"
+    ok "Added @CLAUDE-djtl.md to ~/.claude/CLAUDE.md"
+  else
+    skip "~/.claude/CLAUDE.md already includes @CLAUDE-djtl.md"
+  fi
+
+  # ─── new-project script ───
+  head "new-project script"
+
+  NEWPROJ_SRC="$(fetch_config "claude/new-project.sh")"
+  if [[ -z "$NEWPROJ_SRC" || ! -f "$NEWPROJ_SRC" ]]; then
+    fail "claude/new-project.sh not found (local or remote)"
+  else
+    SCRIPTS_DST="$HOME/.claude/scripts"
+    mkdir -p "$SCRIPTS_DST"
+    cp "$NEWPROJ_SRC" "$SCRIPTS_DST/new-project.sh"
+    ok "new-project.sh deployed → $SCRIPTS_DST/new-project.sh"
+
+    # Copy templates alongside the script
+    for tmpl in project-en.md personal-en.md; do
+      TMPL_SRC="$(fetch_config "claude/$tmpl")"
+      if [[ -n "$TMPL_SRC" && -f "$TMPL_SRC" ]]; then
+        cp "$TMPL_SRC" "$SCRIPTS_DST/$tmpl"
+      fi
+    done
+    ok "Templates deployed alongside new-project.sh"
+
+    # Symlink into projects directory for easy access
+    if [[ -n "$PROJECTS_DIR" && -d "$PROJECTS_DIR" ]]; then
+      ln -sf "$SCRIPTS_DST/new-project.sh" "$PROJECTS_DIR/new-project.sh"
+      ok "Symlinked new-project.sh → $PROJECTS_DIR/new-project.sh"
+    fi
+    info "Usage: cd $PROJECTS_DIR && bash new-project.sh <name> [description]"
+  fi
+
   # ─── Manual steps ───
   head "Manual steps needed"
   echo

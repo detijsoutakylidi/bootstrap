@@ -117,4 +117,16 @@
         "key": "shift+ctrl+d",
         "command": "sftp.diff.activeFile"
     },
+
+    // extensions — Claude Code
+    // open Claude Code primary editor
+    {
+      "key": "shift+alt+escape",
+      "command": "claude-vscode.primaryEditor.open"
+    },
+    // open Claude sessions sidebar
+    {
+      "key": "ctrl+k ctrl+a",
+      "command": "workbench.view.extension.claude-sessions-sidebar"
+    }
 ]

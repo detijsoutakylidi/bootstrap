@@ -104,7 +104,7 @@
     "files.trimFinalNewlines": true,
 
     // terminal — integrated terminal settings
-    "terminal.integrated.fontSize": 18,
+    "terminal.integrated.fontSize": 19,
 
     // security & telemetry — privacy, workspace trust, accessibility
     "telemetry.telemetryLevel": "off",
@@ -147,13 +147,14 @@
     "projectManager.openInNewWindowWhenClickingInStatusBar": true,
     "projectManager.removeCurrentProjectFromList": false,
     "projectManager.tags": [
-      "System",
-      "DJTL"
+      "system",
+      "djtl"
     ],
-    "projectManager.sortList": "Saved",
+    "projectManager.sortList": "Name",
 
     // extension — Git
     "git.confirmSync": false,
+    "git.openRepositoryInParentFolders": "never",
 
     // extension — Peacock
     "peacock.favoriteColors": [
@@ -202,7 +203,6 @@
       "https://www.schemastore.org/": true,
       "https://json.schemastore.org/": true,
       "https://json-schema.org/": true,
-      "https://esm.sh/gh/catppuccin/vscode%40catppuccin-vsc-v3.18.1/packages/catppuccin-vsc/schemas/customUIColors.schema.json": true,
       "https://esm.sh": true
     },
 }

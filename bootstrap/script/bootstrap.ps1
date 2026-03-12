@@ -224,9 +224,13 @@ function Install-Claude {
     Write-Info "Installing Claude Code via native installer..."
     try {
       Invoke-RestMethod https://claude.ai/install.ps1 | Invoke-Expression
-      Write-Ok "Claude Code installed"
     } catch {
       Write-Fail "Claude Code install failed: $_"
+    }
+    if (Get-Command claude -ErrorAction SilentlyContinue) {
+      Write-Ok "Claude Code installed"
+    } else {
+      Write-Fail "Claude Code install failed (claude not found in PATH after install)"
     }
   }
 
@@ -527,6 +531,103 @@ function Configure-Claude {
   Write-Info "Opening Chrome Web Store for Claude in Chrome..."
   Start-Process "https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn"
   Write-Ok "Chrome Web Store opened --- install manually"
+
+  # ─── Claude Code company rules ───
+  Write-Head "Claude Code company rules"
+
+  $DjtlSrc = Get-Config "claude/CLAUDE-djtl.md"
+  $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
+  $DjtlDst = Join-Path $ClaudeDir "CLAUDE-djtl.md"
+
+  if (-not $DjtlSrc -or -not (Test-Path $DjtlSrc)) {
+    Write-Fail "claude/CLAUDE-djtl.md not found (local or remote)"
+  } else {
+    if (-not (Test-Path $ClaudeDir)) { New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null }
+    Copy-Item $DjtlSrc $DjtlDst -Force
+    Write-Ok "CLAUDE-djtl.md deployed -> $DjtlDst"
+  }
+
+  # ─── Global CLAUDE.md ───
+  Write-Head "Global CLAUDE.md"
+
+  $GlobalClaude = Join-Path $ClaudeDir "CLAUDE.md"
+  if (-not (Test-Path $GlobalClaude)) {
+    @"
+@CLAUDE-djtl.md
+
+# Personal
+
+TODO: Add your personal preferences and communication style here.
+"@ | Set-Content -Path $GlobalClaude -Encoding UTF8
+    Write-Ok "Created ~/.claude/CLAUDE.md with @CLAUDE-djtl.md inclusion"
+  } elseif (-not (Select-String -Path $GlobalClaude -Pattern "@CLAUDE-djtl.md" -Quiet)) {
+    Write-Info "~/.claude/CLAUDE.md exists but does not include @CLAUDE-djtl.md"
+    Write-Info "Adding @CLAUDE-djtl.md inclusion at the top..."
+    $existing = Get-Content $GlobalClaude -Raw
+    "@CLAUDE-djtl.md`n`n$existing" | Set-Content -Path $GlobalClaude -Encoding UTF8
+    Write-Ok "Added @CLAUDE-djtl.md to ~/.claude/CLAUDE.md"
+  } else {
+    Write-Skip "~/.claude/CLAUDE.md already includes @CLAUDE-djtl.md"
+  }
+
+  # ─── new-project script ───
+  Write-Head "new-project script"
+
+  $NewProjSrc = Get-Config "claude/new-project.sh"
+  if (-not $NewProjSrc -or -not (Test-Path $NewProjSrc)) {
+    Write-Fail "claude/new-project.sh not found (local or remote)"
+  } else {
+    $ScriptsDst = Join-Path $ClaudeDir "scripts"
+    if (-not (Test-Path $ScriptsDst)) { New-Item -ItemType Directory -Path $ScriptsDst -Force | Out-Null }
+    Copy-Item $NewProjSrc (Join-Path $ScriptsDst "new-project.sh") -Force
+    Write-Ok "new-project.sh deployed -> $ScriptsDst\new-project.sh"
+
+    # Copy templates alongside the script
+    foreach ($tmpl in @("project-en.md", "personal-en.md")) {
+      $TmplSrc = Get-Config "claude/$tmpl"
+      if ($TmplSrc -and (Test-Path $TmplSrc)) {
+        Copy-Item $TmplSrc (Join-Path $ScriptsDst $tmpl) -Force
+      }
+    }
+    Write-Ok "Templates deployed alongside new-project.sh"
+  }
+
+  # ─── new-project PowerShell script ───
+  $NewProjPs1Src = Get-Config "claude/new-project.ps1"
+  if ($NewProjPs1Src -and (Test-Path $NewProjPs1Src)) {
+    Copy-Item $NewProjPs1Src (Join-Path $ScriptsDst "new-project.ps1") -Force
+    Write-Ok "new-project.ps1 deployed -> $ScriptsDst\new-project.ps1"
+  }
+
+  # Symlink into projects directory for easy access
+  if ($ProjectsDir -and (Test-Path $ProjectsDir)) {
+    $canSymlink = $false
+    try {
+      $testLink = Join-Path $ProjectsDir ".symlink-test"
+      $testTarget = Join-Path $ScriptsDst "new-project.ps1"
+      if (Test-Path $testTarget) {
+        New-Item -ItemType SymbolicLink -Path $testLink -Target $testTarget -ErrorAction Stop | Out-Null
+        Remove-Item $testLink
+        $canSymlink = $true
+      }
+    } catch { $canSymlink = $false }
+
+    if ($canSymlink) {
+      $shLink = Join-Path $ProjectsDir "new-project.sh"
+      $ps1Link = Join-Path $ProjectsDir "new-project.ps1"
+      if (Test-Path $shLink) { Remove-Item $shLink -Force }
+      if (Test-Path $ps1Link) { Remove-Item $ps1Link -Force }
+      New-Item -ItemType SymbolicLink -Path $shLink -Target (Join-Path $ScriptsDst "new-project.sh") | Out-Null
+      New-Item -ItemType SymbolicLink -Path $ps1Link -Target (Join-Path $ScriptsDst "new-project.ps1") | Out-Null
+      Write-Ok "Symlinked new-project scripts -> $ProjectsDir"
+    } else {
+      Copy-Item (Join-Path $ScriptsDst "new-project.sh") (Join-Path $ProjectsDir "new-project.sh") -Force
+      Copy-Item (Join-Path $ScriptsDst "new-project.ps1") (Join-Path $ProjectsDir "new-project.ps1") -Force
+      Write-Ok "Copied new-project scripts -> $ProjectsDir (symlinks not available)"
+      Write-Info "[WARN] Enable Developer Mode for symlinks. Scripts won't auto-update without them."
+    }
+    Write-Info "Usage: cd $ProjectsDir; .\new-project.ps1 <name> [description]"
+  }
 
   # ─── Manual steps ───
   Write-Head "Manual steps needed"

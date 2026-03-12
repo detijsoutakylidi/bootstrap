@@ -85,7 +85,18 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 4. Compare against `bootstrap/script/config/codexbar/defaults.plist` — ignore machine-specific keys (keychain fingerprints, OAuth timestamps, window frames, NSStatusItem positions, Sparkle update state)
 5. Show meaningful diffs, update stored plist with approved changes
 
-### 9. Check install methods
+### 9. Compare Claude Code company rules
+
+1. Diff `~/.claude/CLAUDE-djtl.md` against `bootstrap/script/config/claude/CLAUDE-djtl.md`
+2. Show diffs, update stored file with approved changes
+
+### 10. Compare new-project script
+
+1. Diff `new-project.sh` from project `projects` (`/scripts/new-project.sh`) against `bootstrap/script/config/claude/new-project.sh`
+2. Re-copy from projects repo source if different (bootstrap copy is derivative)
+3. Also re-copy templates: `project-en.md`, `personal-en.md`
+
+### 11. Check install methods
 
 1. Verify Homebrew install URL is current
 2. Verify Claude Code native installer URL works (`https://claude.ai/install.sh` for macOS, `https://claude.ai/install.ps1` for Windows)
@@ -93,7 +104,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 4. Verify winget IDs haven't changed (`Microsoft.VisualStudioCode`, `Anthropic.Claude`, `Git.Git`, etc.)
 5. Verify Chrome Web Store extension URL is valid
 
-### 10. Finalize
+### 12. Finalize
 
 - Verify `config/vscode/settings.json` still has `__HOME__` and `__PROJECTS_DIR__` placeholders
 - Verify `bootstrap.ps1` extension lists match `bootstrap.sh`
