@@ -74,6 +74,7 @@ PHASE_INSTALL=false
 PHASE_CONFIGURE=false
 SEC_BASE=false
 SEC_VSCODE=false
+SEC_VSCODE_ASSOC=false
 SEC_CLAUDE=false
 SEC_TERMINAL=false
 SECTION_SPECIFIED=false
@@ -85,12 +86,13 @@ while [[ $# -gt 0 ]]; do
     --configure) PHASE_CONFIGURE=true ;;
     --base)      SEC_BASE=true; SECTION_SPECIFIED=true ;;
     --vscode)    SEC_VSCODE=true; SECTION_SPECIFIED=true ;;
+    --vscode-assoc) SEC_VSCODE_ASSOC=true; SECTION_SPECIFIED=true ;;
     --claude)    SEC_CLAUDE=true; SECTION_SPECIFIED=true ;;
     --terminal)  SEC_TERMINAL=true; SECTION_SPECIFIED=true ;;
     --extended)  EXTENDED=true ;;
     *)
       fail "Unknown option: $1"
-      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]"
+      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]"
       exit 1
       ;;
   esac
@@ -119,6 +121,7 @@ do_install()   { $PHASE_INSTALL; }
 do_configure() { $PHASE_CONFIGURE; }
 do_base()      { $SEC_BASE; }
 do_vscode()    { $SEC_VSCODE; }
+do_vscode_assoc() { $SEC_VSCODE_ASSOC; }
 do_claude()    { $SEC_CLAUDE; }
 do_terminal()  { $SEC_TERMINAL; }
 
@@ -633,64 +636,69 @@ configure_vscode() {
   fi
 
   # ─── File associations ───
+  configure_vscode_assoc
+}
+
+configure_vscode_assoc() {
   head "File associations"
 
   if ! command -v duti &>/dev/null; then
     fail "duti not found — install it first (bash bootstrap.sh --install)"
-  else
-    VSCODE_BUNDLE="com.microsoft.VSCode"
+    return
+  fi
 
-    set_file_association() {
-      local identifier="$1"
-      local label="$2"
-      local type="$3"
+  VSCODE_BUNDLE="com.microsoft.VSCode"
 
-      # Check current handler — duti -d returns bundle ID, duti -x returns app name
-      local current_bundle=""
-      if [ "$type" = "ext" ]; then
-        # duti -x output: line 1 = app name, line 3 = bundle ID
-        current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | sed -n '3p' || true)
-        if [ -z "$current_bundle" ]; then
-          current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || true)
-        fi
-      else
-        current_bundle=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
+  set_file_association() {
+    local identifier="$1"
+    local label="$2"
+    local type="$3"
+
+    # Check current handler — duti -d returns bundle ID, duti -x returns app name
+    local current_bundle=""
+    if [ "$type" = "ext" ]; then
+      # duti -x output: line 1 = app name, line 3 = bundle ID
+      current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | sed -n '3p' || true)
+      if [ -z "$current_bundle" ]; then
+        current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || true)
       fi
+    else
+      current_bundle=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
+    fi
 
-      # Normalize: check if VS Code is the handler
-      if echo "$current_bundle" | grep -qi "com.microsoft.VSCode\|Visual Studio Code"; then
-        skip "$label already opens in VS Code"
+    # Normalize: check if VS Code is the handler
+    if echo "$current_bundle" | grep -qi "com.microsoft.VSCode\|Visual Studio Code"; then
+      skip "$label already opens in VS Code"
+      return
+    fi
+
+    # If there's a current handler (and it's not empty/error), ask before changing
+    if [ -n "$current_bundle" ] && [ "$current_bundle" != "null" ] && [[ ! "$current_bundle" =~ ^-?[0-9]+$ ]]; then
+      local display_name
+      display_name=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || echo "$current_bundle")
+      read -rp "$(echo "${blue}▸${reset} $label currently opens in: $display_name. Set to VS Code? [y/N] ")" answer
+      if [[ ! "$answer" =~ ^[Yy]$ ]]; then
         return
       fi
+    fi
 
-      # If there's a current handler (and it's not empty/error), ask before changing
-      if [ -n "$current_bundle" ] && [ "$current_bundle" != "null" ] && [[ ! "$current_bundle" =~ ^-?[0-9]+$ ]]; then
-        local display_name
-        display_name=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || echo "$current_bundle")
-        read -rp "$(echo "${blue}▸${reset} $label currently opens in: $display_name. Set to VS Code? [y/N] ")" answer
-        if [[ ! "$answer" =~ ^[Yy]$ ]]; then
-          return
-        fi
-      fi
+    duti -s "$VSCODE_BUNDLE" "$identifier" all
+    ok "$label → VS Code"
+  }
 
-      duti -s "$VSCODE_BUNDLE" "$identifier" all
-      ok "$label → VS Code"
-    }
+  # UTI-based associations
+  set_file_association "public.json"                    ".json"       "uti"
+  set_file_association "public.xml"                     ".xml"        "uti"
+  set_file_association "com.netscape.javascript-source" ".js"         "uti"
+  set_file_association "org.w3.webvtt"                  ".vtt"        "uti"
 
-    # UTI-based associations
-    set_file_association "public.json"                    ".json"       "uti"
-    set_file_association "public.xml"                     ".xml"        "uti"
-    set_file_association "com.netscape.javascript-source" ".js"         "uti"
-    set_file_association "org.w3.webvtt"                  ".vtt"        "uti"
-
-    # Extension-based associations
-    set_file_association ".md"       ".md"       "ext"
-    set_file_association ".jsonl"    ".jsonl"    "ext"
-    set_file_association ".srt"      ".srt"      "ext"
-    set_file_association ".pub"      ".pub"      "ext"
-    set_file_association ".tf"       ".tf"       "ext"
-    set_file_association ".tfstate"  ".tfstate"  "ext"
-  fi
+  # Extension-based associations
+  set_file_association ".md"       ".md"       "ext"
+  set_file_association ".jsonl"    ".jsonl"    "ext"
+  set_file_association ".srt"      ".srt"      "ext"
+  set_file_association ".pub"      ".pub"      "ext"
+  set_file_association ".tf"       ".tf"       "ext"
+  set_file_association ".tfstate"  ".tfstate"  "ext"
 }
 
 configure_claude() {
@@ -859,11 +867,12 @@ $PHASE_CONFIGURE && PHASES="${PHASES}configure "
 SECTIONS=""
 $SEC_BASE && SECTIONS="${SECTIONS}base "
 $SEC_VSCODE && SECTIONS="${SECTIONS}vscode "
+$SEC_VSCODE_ASSOC && SECTIONS="${SECTIONS}vscode-assoc "
 $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260312-2209"
+BOOTSTRAP_BUILD="260312-2222"
 # Override with live git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   BOOTSTRAP_BUILD=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
@@ -899,10 +908,11 @@ if do_configure; then
   echo "  CONFIGURE PHASE (user-level)"
   echo "══════════════════════════════════════"
 
-  if do_base;     then configure_devbase;  fi
-  if do_terminal; then configure_terminal; fi
-  if do_vscode;   then configure_vscode;   fi
-  if do_claude;   then configure_claude;   fi
+  if do_base;       then configure_devbase;      fi
+  if do_terminal;   then configure_terminal;    fi
+  if do_vscode;     then configure_vscode;      fi
+  if do_vscode_assoc; then configure_vscode_assoc; fi
+  if do_claude;     then configure_claude;      fi
 fi
 
 echo

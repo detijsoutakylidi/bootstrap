@@ -63,7 +63,7 @@ function Get-Config {
 
 $PhaseInstall = $false
 $PhaseConfigure = $false
-$SecBase = $false; $SecVscode = $false; $SecClaude = $false; $SecTerminal = $false
+$SecBase = $false; $SecVscode = $false; $SecVscodeAssoc = $false; $SecClaude = $false; $SecTerminal = $false
 $SectionSpecified = $false
 $Extended = $false
 
@@ -73,12 +73,13 @@ foreach ($a in $args) {
     "--configure" { $PhaseConfigure = $true }
     "--base"      { $SecBase = $true; $SectionSpecified = $true }
     "--vscode"    { $SecVscode = $true; $SectionSpecified = $true }
+    "--vscode-assoc" { $SecVscodeAssoc = $true; $SectionSpecified = $true }
     "--claude"    { $SecClaude = $true; $SectionSpecified = $true }
     "--terminal"  { $SecTerminal = $true; $SectionSpecified = $true }
     "--extended"  { $Extended = $true }
     default {
       Write-Fail "Unknown option: $a"
-      Write-Host "Usage: .\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]"
+      Write-Host "Usage: .\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]"
       exit 1
     }
   }
@@ -187,6 +188,10 @@ function Install-Vscode {
   }
 
   # ─── File associations ───
+  Configure-VscodeAssoc
+}
+
+function Configure-VscodeAssoc {
   Write-Head "File associations"
 
   $extensions = @(".json", ".xml", ".js", ".md", ".jsonl", ".srt", ".pub", ".tf", ".tfstate", ".vtt")
@@ -697,11 +702,12 @@ if ($PhaseConfigure) { $phases += "configure" }
 $sections = @()
 if ($SecBase) { $sections += "base" }
 if ($SecVscode) { $sections += "vscode" }
+if ($SecVscodeAssoc) { $sections += "vscode-assoc" }
 if ($SecClaude) { $sections += "claude" }
 if ($SecTerminal) { $sections += "terminal" }
 
 # Version stamp — update before each push
-$BootstrapBuild = "260312-2209"
+$BootstrapBuild = "260312-2222"
 # Override with live git hash when running from local checkout
 if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
   try { Push-Location $ScriptDir; $hash = git rev-parse --short HEAD 2>$null; Pop-Location; if ($hash) { $BootstrapBuild = $hash } } catch { Pop-Location }
@@ -737,10 +743,11 @@ if ($PhaseConfigure) {
   Write-Host "  CONFIGURE PHASE (user-level)"
   Write-Host "======================================"
 
-  if ($SecBase)     { Configure-Base }
-  if ($SecTerminal) { Configure-Terminal }
-  if ($SecVscode)   { Configure-Vscode }
-  if ($SecClaude)   { Configure-Claude }
+  if ($SecBase)       { Configure-Base }
+  if ($SecTerminal)   { Configure-Terminal }
+  if ($SecVscode)     { Configure-Vscode }
+  if ($SecVscodeAssoc) { Configure-VscodeAssoc }
+  if ($SecClaude)     { Configure-Claude }
 }
 
 Write-Host ""

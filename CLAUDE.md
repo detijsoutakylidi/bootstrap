@@ -33,8 +33,8 @@ bootstrap/                         # Subdirectory (not the project root)
 
 ### Run
 
-**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]`
-**Windows:** `.\bootstrap\script\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--claude] [--terminal] [--extended]`
+**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]`
+**Windows:** `.\bootstrap\script\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]`
 
 Both scripts auto-detect admin status, are idempotent, and support cloud install (see README).
 
