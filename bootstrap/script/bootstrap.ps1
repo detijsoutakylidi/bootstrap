@@ -700,16 +700,16 @@ if ($SecVscode) { $sections += "vscode" }
 if ($SecClaude) { $sections += "claude" }
 if ($SecTerminal) { $sections += "terminal" }
 
-# Detect version (git commit when run from checkout, "remote" otherwise)
-$BootstrapVersion = "remote"
-if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue) -and (Test-Path (Join-Path $ScriptDir '.git') -or (try { Push-Location $ScriptDir; git rev-parse --git-dir 2>$null; Pop-Location; $true } catch { Pop-Location; $false }))) {
-  try { Push-Location $ScriptDir; $BootstrapVersion = git rev-parse --short HEAD 2>$null; Pop-Location } catch { Pop-Location }
-  if (-not $BootstrapVersion) { $BootstrapVersion = "unknown" }
+# Version stamp — update before each push
+$BootstrapBuild = "48948f5"
+# Override with live git hash when running from local checkout
+if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
+  try { Push-Location $ScriptDir; $hash = git rev-parse --short HEAD 2>$null; Pop-Location; if ($hash) { $BootstrapBuild = $hash } } catch { Pop-Location }
 }
 
 Write-Host ""
 Write-Host "+-------------------------------------+"
-Write-Host "|  Windows Bootstrap ($BootstrapVersion)"
+Write-Host "|  Windows Bootstrap ($BootstrapBuild)"
 Write-Host "|  phase: $($phases -join ' ')"
 Write-Host "|  sections: $($sections -join ' ')"
 Write-Host "+-------------------------------------+"

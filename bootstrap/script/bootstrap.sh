@@ -862,15 +862,16 @@ $SEC_VSCODE && SECTIONS="${SECTIONS}vscode "
 $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
-# Detect version (git commit when run from checkout, "remote" otherwise)
-BOOTSTRAP_VERSION="remote"
+# Version stamp — update before each push
+BOOTSTRAP_BUILD="48948f5"
+# Override with live git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
-  BOOTSTRAP_VERSION=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || BOOTSTRAP_VERSION="unknown"
+  BOOTSTRAP_BUILD=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
 fi
 
 echo
 echo "┌─────────────────────────────────────┐"
-echo "│  macOS Bootstrap ($BOOTSTRAP_VERSION)"
+echo "│  macOS Bootstrap ($BOOTSTRAP_BUILD)"
 echo "│  phase: ${PHASES% }"
 echo "│  sections: ${SECTIONS% }"
 echo "└─────────────────────────────────────┘"
