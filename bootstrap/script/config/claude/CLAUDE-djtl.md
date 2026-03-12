@@ -2,6 +2,11 @@
 
 <!-- Deployed by bootstrap. Do not edit — update the source in the bootstrap repo. -->
 
+## Output Style
+- Do small tasks directly via tools; don't hand me commands to paste. For bigger things, offer options and ask.
+- Always provide clickable URLs/links — don't just describe where to go.
+- When giving text to copy, use code blocks for one-click copying.
+
 ## Scripts
 - Don't chmod +x — run with `bash script_name` instead
 
