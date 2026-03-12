@@ -246,8 +246,9 @@ install_claude() {
   # ─── Claude Code ───
   head "Claude Code"
 
-  # Detect and offer to remove Homebrew version (conflicts with native installer)
-  if brew list claude &>/dev/null 2>&1 || [[ -f "/opt/homebrew/bin/claude" ]]; then
+  # Detect and offer to remove Homebrew formula version (conflicts with native installer)
+  # Note: `brew list claude` matches the Claude Desktop cask — check formula only
+  if brew list --formula claude-code &>/dev/null 2>&1 || [[ -f "/opt/homebrew/bin/claude" ]]; then
     BREW_VER=$(/opt/homebrew/bin/claude --version 2>/dev/null || echo "unknown")
     info "Homebrew version detected: claude $BREW_VER"
     read -rp "$(echo "${blue}▸${reset} Remove Homebrew version in favour of native installer? [y/N] ")" answer
