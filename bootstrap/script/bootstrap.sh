@@ -872,18 +872,19 @@ $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260312-2222"
-# Override with live git hash when running from local checkout
+BOOTSTRAP_BUILD="260312-2233"
+# Append git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
-  BOOTSTRAP_BUILD=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
+  GIT_HASH=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
+  [[ -n "$GIT_HASH" ]] && BOOTSTRAP_BUILD="$BOOTSTRAP_BUILD $GIT_HASH"
 fi
 
 echo
-echo "┌─────────────────────────────────────┐"
+echo "┌───────────────────────────────────────────────┐"
 echo "│  macOS Bootstrap ($BOOTSTRAP_BUILD)"
 echo "│  phase: ${PHASES% }"
 echo "│  sections: ${SECTIONS% }"
-echo "└─────────────────────────────────────┘"
+echo "└───────────────────────────────────────────────┘"
 echo
 read -rp "$(echo "${blue}▸${reset} Run bootstrap? [Y/n] ")" CONFIRM
 if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then

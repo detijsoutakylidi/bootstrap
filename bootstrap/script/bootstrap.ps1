@@ -707,18 +707,18 @@ if ($SecClaude) { $sections += "claude" }
 if ($SecTerminal) { $sections += "terminal" }
 
 # Version stamp — update before each push
-$BootstrapBuild = "260312-2222"
-# Override with live git hash when running from local checkout
+$BootstrapBuild = "260312-2233"
+# Append git hash when running from local checkout
 if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
-  try { Push-Location $ScriptDir; $hash = git rev-parse --short HEAD 2>$null; Pop-Location; if ($hash) { $BootstrapBuild = $hash } } catch { Pop-Location }
+  try { Push-Location $ScriptDir; $hash = git rev-parse --short HEAD 2>$null; Pop-Location; if ($hash) { $BootstrapBuild = "$BootstrapBuild $hash" } } catch { Pop-Location }
 }
 
 Write-Host ""
-Write-Host "+-------------------------------------+"
+Write-Host "+-----------------------------------------------+"
 Write-Host "|  Windows Bootstrap ($BootstrapBuild)"
 Write-Host "|  phase: $($phases -join ' ')"
 Write-Host "|  sections: $($sections -join ' ')"
-Write-Host "+-------------------------------------+"
+Write-Host "+-----------------------------------------------+"
 Write-Host ""
 $confirm = Read-Host "> Run bootstrap? [Y/n]"
 if ($confirm -match '^[Nn]$') {
