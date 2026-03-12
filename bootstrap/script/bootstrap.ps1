@@ -713,6 +713,12 @@ Write-Host "|  Windows Bootstrap ($BootstrapVersion)"
 Write-Host "|  phase: $($phases -join ' ')"
 Write-Host "|  sections: $($sections -join ' ')"
 Write-Host "+-------------------------------------+"
+Write-Host ""
+$confirm = Read-Host "> Run bootstrap? [Y/n]"
+if ($confirm -match '^[Nn]$') {
+  Write-Info "Aborted."
+  exit 0
+}
 
 if ($PhaseInstall) {
   Write-Host ""

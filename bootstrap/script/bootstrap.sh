@@ -875,6 +875,12 @@ echo "│  macOS Bootstrap ($BOOTSTRAP_VERSION)"
 echo "│  phase: ${PHASES% }"
 echo "│  sections: ${SECTIONS% }"
 echo "└─────────────────────────────────────┘"
+echo
+read -rp "$(echo "${blue}▸${reset} Run bootstrap? [Y/n] ")" CONFIRM
+if [[ "$CONFIRM" =~ ^[Nn]$ ]]; then
+  info "Aborted."
+  exit 0
+fi
 
 if do_install; then
   echo
