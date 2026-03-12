@@ -253,7 +253,7 @@ install_claude() {
     info "Homebrew version detected: claude $BREW_VER"
     read -rp "$(echo "${blue}▸${reset} Remove Homebrew version in favour of native installer? [y/N] ")" answer
     if [[ "$answer" =~ ^[Yy]$ ]]; then
-      brew uninstall claude 2>/dev/null || true
+      brew uninstall --formula claude-code 2>/dev/null || true
       ok "Homebrew claude removed"
       hash -r  # refresh command cache
     fi
