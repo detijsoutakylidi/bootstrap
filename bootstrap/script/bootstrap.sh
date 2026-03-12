@@ -246,8 +246,20 @@ install_claude() {
   # ─── Claude Code ───
   head "Claude Code"
 
-  # Native installer puts binary at ~/.local/bin/claude — ensure it's in PATH
-  if [[ -f "$HOME/.local/bin/claude" ]] && ! command -v claude &>/dev/null; then
+  # Detect and offer to remove Homebrew version (conflicts with native installer)
+  if brew list claude &>/dev/null 2>&1 || [[ -f "/opt/homebrew/bin/claude" ]]; then
+    BREW_VER=$(/opt/homebrew/bin/claude --version 2>/dev/null || echo "unknown")
+    info "Homebrew version detected: claude $BREW_VER"
+    read -rp "$(echo "${blue}▸${reset} Remove Homebrew version in favour of native installer? [y/N] ")" answer
+    if [[ "$answer" =~ ^[Yy]$ ]]; then
+      brew uninstall claude 2>/dev/null || true
+      ok "Homebrew claude removed"
+      hash -r  # refresh command cache
+    fi
+  fi
+
+  # Helper: ensure ~/.local/bin is in PATH
+  _ensure_claude_path() {
     export PATH="$HOME/.local/bin:$PATH"
     SHELL_RC="$HOME/.zshrc"
     if ! grep -q '\.local/bin' "$SHELL_RC" 2>/dev/null; then
@@ -256,25 +268,17 @@ install_claude() {
       echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
       ok "Added ~/.local/bin to PATH (~/.zshrc)"
     fi
-  fi
+  }
 
-  if command -v claude &>/dev/null || [[ -f "$HOME/.local/bin/claude" ]]; then
+  # Check specifically for native install, not any claude in PATH
+  if [[ -f "$HOME/.local/bin/claude" ]]; then
+    _ensure_claude_path
     skip "Already installed: claude $(claude --version 2>/dev/null || echo '?')"
   else
     info "Installing Claude Code via native installer…"
     if curl -fsSL https://claude.ai/install.sh | bash; then
       ok "Claude Code installed"
-      # Add to PATH for rest of this session
-      if [[ -f "$HOME/.local/bin/claude" ]] && ! command -v claude &>/dev/null; then
-        export PATH="$HOME/.local/bin:$PATH"
-        SHELL_RC="$HOME/.zshrc"
-        if ! grep -q '\.local/bin' "$SHELL_RC" 2>/dev/null; then
-          echo '' >> "$SHELL_RC"
-          echo '# Claude Code' >> "$SHELL_RC"
-          echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
-          ok "Added ~/.local/bin to PATH (~/.zshrc)"
-        fi
-      fi
+      [[ -f "$HOME/.local/bin/claude" ]] && _ensure_claude_path
     else
       fail "Claude Code install failed"
     fi
