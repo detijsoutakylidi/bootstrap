@@ -702,8 +702,8 @@ if ($SecTerminal) { $sections += "terminal" }
 
 # Detect version (git commit when run from checkout, "remote" otherwise)
 $BootstrapVersion = "remote"
-if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
-  try { $BootstrapVersion = git -C $ScriptDir rev-parse --short HEAD 2>$null } catch {}
+if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue) -and (Test-Path (Join-Path $ScriptDir '.git') -or (try { Push-Location $ScriptDir; git rev-parse --git-dir 2>$null; Pop-Location; $true } catch { Pop-Location; $false }))) {
+  try { Push-Location $ScriptDir; $BootstrapVersion = git rev-parse --short HEAD 2>$null; Pop-Location } catch { Pop-Location }
   if (-not $BootstrapVersion) { $BootstrapVersion = "unknown" }
 }
 

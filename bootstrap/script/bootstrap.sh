@@ -864,7 +864,7 @@ $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
 # Detect version (git commit when run from checkout, "remote" otherwise)
 BOOTSTRAP_VERSION="remote"
-if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null; then
+if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   BOOTSTRAP_VERSION=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || BOOTSTRAP_VERSION="unknown"
 fi
 
