@@ -863,7 +863,7 @@ $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="48948f5"
+BOOTSTRAP_BUILD="260312-2209"
 # Override with live git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   BOOTSTRAP_BUILD=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true

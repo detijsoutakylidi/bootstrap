@@ -701,7 +701,7 @@ if ($SecClaude) { $sections += "claude" }
 if ($SecTerminal) { $sections += "terminal" }
 
 # Version stamp — update before each push
-$BootstrapBuild = "48948f5"
+$BootstrapBuild = "260312-2209"
 # Override with live git hash when running from local checkout
 if ($ScriptDir -and (Get-Command git -ErrorAction SilentlyContinue)) {
   try { Push-Location $ScriptDir; $hash = git rev-parse --short HEAD 2>$null; Pop-Location; if ($hash) { $BootstrapBuild = $hash } } catch { Pop-Location }
