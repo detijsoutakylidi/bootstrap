@@ -246,12 +246,35 @@ install_claude() {
   # ─── Claude Code ───
   head "Claude Code"
 
-  if command -v claude &>/dev/null; then
+  # Native installer puts binary at ~/.local/bin/claude — ensure it's in PATH
+  if [[ -f "$HOME/.local/bin/claude" ]] && ! command -v claude &>/dev/null; then
+    export PATH="$HOME/.local/bin:$PATH"
+    SHELL_RC="$HOME/.zshrc"
+    if ! grep -q '\.local/bin' "$SHELL_RC" 2>/dev/null; then
+      echo '' >> "$SHELL_RC"
+      echo '# Claude Code' >> "$SHELL_RC"
+      echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
+      ok "Added ~/.local/bin to PATH (~/.zshrc)"
+    fi
+  fi
+
+  if command -v claude &>/dev/null || [[ -f "$HOME/.local/bin/claude" ]]; then
     skip "Already installed: claude $(claude --version 2>/dev/null || echo '?')"
   else
     info "Installing Claude Code via native installer…"
     if curl -fsSL https://claude.ai/install.sh | bash; then
       ok "Claude Code installed"
+      # Add to PATH for rest of this session
+      if [[ -f "$HOME/.local/bin/claude" ]] && ! command -v claude &>/dev/null; then
+        export PATH="$HOME/.local/bin:$PATH"
+        SHELL_RC="$HOME/.zshrc"
+        if ! grep -q '\.local/bin' "$SHELL_RC" 2>/dev/null; then
+          echo '' >> "$SHELL_RC"
+          echo '# Claude Code' >> "$SHELL_RC"
+          echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$SHELL_RC"
+          ok "Added ~/.local/bin to PATH (~/.zshrc)"
+        fi
+      fi
     else
       fail "Claude Code install failed"
     fi
@@ -487,16 +510,20 @@ configure_vscode() {
   # ─── Projects directory ───
   head "Projects directory"
 
-  read -rp "$(echo "${blue}▸${reset} Projects directory (default: ~/Projects): ")" PROJECTS_DIR
-  PROJECTS_DIR="${PROJECTS_DIR:-$HOME/Projects}"
-  PROJECTS_DIR="${PROJECTS_DIR/#\~/$HOME}"
-
+  PROJECTS_DIR="$HOME/Projects"
   if [ -d "$PROJECTS_DIR" ]; then
     skip "Projects directory exists: $PROJECTS_DIR"
   else
-    info "Creating $PROJECTS_DIR..."
-    mkdir -p "$PROJECTS_DIR"
-    ok "Created $PROJECTS_DIR"
+    read -rp "$(echo "${blue}▸${reset} Projects directory (default: ~/Projects): ")" CUSTOM_DIR
+    PROJECTS_DIR="${CUSTOM_DIR:-$HOME/Projects}"
+    PROJECTS_DIR="${PROJECTS_DIR/#\~/$HOME}"
+    if [ -d "$PROJECTS_DIR" ]; then
+      skip "Projects directory exists: $PROJECTS_DIR"
+    else
+      info "Creating $PROJECTS_DIR..."
+      mkdir -p "$PROJECTS_DIR"
+      ok "Created $PROJECTS_DIR"
+    fi
   fi
 
   # ─── Essential extensions ───
@@ -613,20 +640,29 @@ configure_vscode() {
       local label="$2"
       local type="$3"
 
-      local current=""
+      # Check current handler — duti -d returns bundle ID, duti -x returns app name
+      local current_bundle=""
       if [ "$type" = "ext" ]; then
-        current=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || true)
+        # duti -x output: line 1 = app name, line 3 = bundle ID
+        current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | sed -n '3p' || true)
+        if [ -z "$current_bundle" ]; then
+          current_bundle=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || true)
+        fi
       else
-        current=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
+        current_bundle=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
       fi
 
-      if echo "$current" | grep -qi "Visual Studio Code"; then
+      # Normalize: check if VS Code is the handler
+      if echo "$current_bundle" | grep -qi "com.microsoft.VSCode\|Visual Studio Code"; then
         skip "$label already opens in VS Code"
         return
       fi
 
-      if [ -n "$current" ] && [ "$current" != "null" ]; then
-        read -rp "$(echo "${blue}▸${reset} $label currently opens in: $current. Set to VS Code? [y/N] ")" answer
+      # If there's a current handler (and it's not empty/error), ask before changing
+      if [ -n "$current_bundle" ] && [ "$current_bundle" != "null" ] && [[ ! "$current_bundle" =~ ^-?[0-9]+$ ]]; then
+        local display_name
+        display_name=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || echo "$current_bundle")
+        read -rp "$(echo "${blue}▸${reset} $label currently opens in: $display_name. Set to VS Code? [y/N] ")" answer
         if [[ ! "$answer" =~ ^[Yy]$ ]]; then
           return
         fi
@@ -656,9 +692,13 @@ configure_claude() {
   head "Claude ecosystem"
 
   # ─── Chrome extension ───
-  info "Opening Chrome Web Store for Claude in Chrome…"
-  open 'https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn' 2>/dev/null || true
-  ok "Chrome Web Store opened — install manually"
+  read -rp "$(echo "${blue}▸${reset} Open Chrome Web Store to install Claude extension? [y/N] ")" answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    open 'https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn' 2>/dev/null || true
+    ok "Chrome Web Store opened — install manually"
+  else
+    skip "Skipped Chrome extension"
+  fi
 
   # ─── CodexBar config ───
   head "CodexBar config"
@@ -772,11 +812,36 @@ CLAUDEEOF
   # ─── Manual steps ───
   head "Manual steps needed"
   echo
-  info "Run: claude login                       → authenticate Claude Code"
-  info "Run: gh auth login                      → authenticate GitHub CLI"
-  info "Open Claude.app                         → sign in with your account"
-  info "Chrome Web Store                        → click \"Add to Chrome\" if not done"
+
+  MANUAL_STEPS=0
+
+  if command -v claude &>/dev/null && claude auth status &>/dev/null 2>&1; then
+    skip "Claude Code already authenticated"
+  else
+    info "Run: claude login                       → authenticate Claude Code"
+    MANUAL_STEPS=$((MANUAL_STEPS + 1))
+  fi
+
+  if command -v gh &>/dev/null && gh auth status &>/dev/null 2>&1; then
+    skip "GitHub CLI already authenticated"
+  else
+    info "Run: gh auth login                      → authenticate GitHub CLI"
+    MANUAL_STEPS=$((MANUAL_STEPS + 1))
+  fi
+
+  if [[ -d "/Applications/Claude.app" ]]; then
+    skip "Claude Desktop installed"
+  else
+    info "Open Claude.app                         → sign in with your account"
+    MANUAL_STEPS=$((MANUAL_STEPS + 1))
+  fi
+
   info "Claude Desktop → Settings → Connectors  → enable Claude in Chrome connector"
+  MANUAL_STEPS=$((MANUAL_STEPS + 1))
+
+  if [[ "$MANUAL_STEPS" -eq 0 ]]; then
+    ok "All steps already completed!"
+  fi
 }
 
 # ═══════════════════════════════════════════════════════════════

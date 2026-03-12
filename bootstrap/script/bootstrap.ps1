@@ -218,8 +218,21 @@ function Install-Claude {
   # ─── Claude Code ───
   Write-Head "Claude Code"
 
-  if (Get-Command claude -ErrorAction SilentlyContinue) {
-    Write-Skip "Already installed: claude $(claude --version 2>&1)"
+  # Native installer puts binary in ~/.local/bin or %LOCALAPPDATA%\Programs — ensure PATH
+  $claudeLocalBin = Join-Path $env:USERPROFILE ".local\bin\claude.exe"
+  if ((Test-Path $claudeLocalBin) -and -not (Get-Command claude -ErrorAction SilentlyContinue)) {
+    $localBinDir = Split-Path $claudeLocalBin
+    $env:PATH = "$localBinDir;$env:PATH"
+    # Persist to user PATH
+    $userPath = [Environment]::GetEnvironmentVariable("PATH", "User")
+    if ($userPath -notmatch [regex]::Escape($localBinDir)) {
+      [Environment]::SetEnvironmentVariable("PATH", "$localBinDir;$userPath", "User")
+      Write-Ok "Added $localBinDir to user PATH"
+    }
+  }
+
+  if ((Get-Command claude -ErrorAction SilentlyContinue) -or (Test-Path $claudeLocalBin)) {
+    Write-Skip "Already installed: claude $(try { claude --version 2>&1 } catch { '?' })"
   } else {
     Write-Info "Installing Claude Code via native installer..."
     try {
@@ -227,7 +240,7 @@ function Install-Claude {
     } catch {
       Write-Fail "Claude Code install failed: $_"
     }
-    if (Get-Command claude -ErrorAction SilentlyContinue) {
+    if ((Get-Command claude -ErrorAction SilentlyContinue) -or (Test-Path $claudeLocalBin)) {
       Write-Ok "Claude Code installed"
     } else {
       Write-Fail "Claude Code install failed (claude not found in PATH after install)"
@@ -405,16 +418,19 @@ function Configure-Vscode {
   # ─── Projects directory ───
   Write-Head "Projects directory"
 
-  $defaultProjectsDir = "$env:USERPROFILE\Projects"
-  $answer = Read-Host "> Projects directory (default: $defaultProjectsDir)"
-  $ProjectsDir = if ($answer) { $answer } else { $defaultProjectsDir }
-
+  $ProjectsDir = "$env:USERPROFILE\Projects"
   if (Test-Path $ProjectsDir) {
     Write-Skip "Projects directory exists: $ProjectsDir"
   } else {
-    Write-Info "Creating $ProjectsDir..."
-    New-Item -ItemType Directory -Path $ProjectsDir -Force | Out-Null
-    Write-Ok "Created $ProjectsDir"
+    $answer = Read-Host "> Projects directory (default: $ProjectsDir)"
+    $ProjectsDir = if ($answer) { $answer } else { "$env:USERPROFILE\Projects" }
+    if (Test-Path $ProjectsDir) {
+      Write-Skip "Projects directory exists: $ProjectsDir"
+    } else {
+      Write-Info "Creating $ProjectsDir..."
+      New-Item -ItemType Directory -Path $ProjectsDir -Force | Out-Null
+      Write-Ok "Created $ProjectsDir"
+    }
   }
 
   # ─── Essential extensions ───
@@ -528,9 +544,13 @@ function Configure-Claude {
   Write-Head "Claude ecosystem"
 
   # ─── Chrome extension ───
-  Write-Info "Opening Chrome Web Store for Claude in Chrome..."
-  Start-Process "https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn"
-  Write-Ok "Chrome Web Store opened --- install manually"
+  $answer = Read-Host "> Open Chrome Web Store to install Claude extension? [y/N]"
+  if ($answer -match '^[Yy]$') {
+    Start-Process "https://chromewebstore.google.com/detail/claude/fcoeoabgfenejglbffodgkkbkcdhcgfn"
+    Write-Ok "Chrome Web Store opened --- install manually"
+  } else {
+    Write-Skip "Skipped Chrome extension"
+  }
 
   # ─── Claude Code company rules ───
   Write-Head "Claude Code company rules"
@@ -632,11 +652,37 @@ TODO: Add your personal preferences and communication style here.
   # ─── Manual steps ───
   Write-Head "Manual steps needed"
   Write-Host ""
-  Write-Info "Run: claude login                       -> authenticate Claude Code"
-  Write-Info "Run: gh auth login                      -> authenticate GitHub CLI"
-  Write-Info "Open Claude Desktop                     -> sign in with your account"
-  Write-Info "Chrome Web Store                        -> click 'Add to Chrome' if not done"
+
+  $manualSteps = 0
+
+  if ((Get-Command claude -ErrorAction SilentlyContinue) -and (claude auth status 2>&1 | Out-Null; $LASTEXITCODE -eq 0)) {
+    Write-Skip "Claude Code already authenticated"
+  } else {
+    Write-Info "Run: claude login                       -> authenticate Claude Code"
+    $manualSteps++
+  }
+
+  if ((Get-Command gh -ErrorAction SilentlyContinue) -and (gh auth status 2>&1 | Out-Null; $LASTEXITCODE -eq 0)) {
+    Write-Skip "GitHub CLI already authenticated"
+  } else {
+    Write-Info "Run: gh auth login                      -> authenticate GitHub CLI"
+    $manualSteps++
+  }
+
+  $claudeDesktopInstalled = (Test-Path "$env:LOCALAPPDATA\Programs\claude\Claude.exe") -or
+    (winget list --id Anthropic.Claude 2>$null | Select-String "Anthropic.Claude")
+  if ($claudeDesktopInstalled) {
+    Write-Skip "Claude Desktop installed"
+  } else {
+    Write-Info "Open Claude Desktop                     -> sign in with your account"
+    $manualSteps++
+  }
+
   Write-Info "(CodexBar is macOS-only --- not available on Windows)"
+
+  if ($manualSteps -eq 0) {
+    Write-Ok "All steps already completed!"
+  }
 }
 
 # ═══════════════════════════════════════════════════════════
