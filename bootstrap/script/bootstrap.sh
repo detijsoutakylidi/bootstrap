@@ -66,7 +66,7 @@ info()  { echo "${blue}▸${reset} $1"; }
 ok()    { echo "${green}✔${reset} $1"; }
 skip()  { echo "${yellow}⊘${reset} $1"; }
 fail()  { echo "${red}✘${reset} $1"; }
-head()  { echo; echo "${reset}⎯ $1 ⎯${reset}"; }
+section()  { echo; echo "${reset}⎯ $1 ⎯${reset}"; }
 
 # ─── Argument parsing ───────────────────────────────────────
 
@@ -131,7 +131,7 @@ do_terminal()  { $SEC_TERMINAL; }
 
 install_devbase() {
   # ─── Xcode Command Line Tools ───
-  head "Xcode Command Line Tools"
+  section "Xcode Command Line Tools"
 
   if xcode-select -p &>/dev/null; then
     skip "Already installed: $(xcode-select -p)"
@@ -147,7 +147,7 @@ install_devbase() {
   fi
 
   # ─── Rosetta 2 (Apple Silicon only) ───
-  head "Rosetta 2"
+  section "Rosetta 2"
 
   arch=$(uname -m)
   if [[ "$arch" != "arm64" ]]; then
@@ -161,7 +161,7 @@ install_devbase() {
   fi
 
   # ─── Homebrew ───
-  head "Homebrew"
+  section "Homebrew"
 
   if command -v brew &>/dev/null; then
     skip "Already installed: $(brew --version | head -1)"
@@ -177,7 +177,7 @@ install_devbase() {
   fi
 
   # ─── Git ───
-  head "Git"
+  section "Git"
 
   if command -v git &>/dev/null; then
     skip "Already installed: $(git --version)"
@@ -188,7 +188,7 @@ install_devbase() {
   fi
 
   # ─── jq ───
-  head "jq"
+  section "jq"
 
   if command -v jq &>/dev/null; then
     skip "Already installed: $(jq --version)"
@@ -199,7 +199,7 @@ install_devbase() {
   fi
 
   # ─── ripgrep ───
-  head "ripgrep"
+  section "ripgrep"
 
   if command -v rg &>/dev/null; then
     skip "Already installed: $(rg --version | head -1)"
@@ -210,7 +210,7 @@ install_devbase() {
   fi
 
   # ─── GitHub CLI ───
-  head "GitHub CLI"
+  section "GitHub CLI"
 
   if command -v gh &>/dev/null; then
     skip "Already installed: $(gh --version | head -1)"
@@ -223,7 +223,7 @@ install_devbase() {
 
 install_vscode() {
   # ─── VS Code app ───
-  head "VS Code"
+  section "VS Code"
 
   if [ -d "/Applications/Visual Studio Code.app" ] || [ -d "$HOME/Applications/Visual Studio Code.app" ] || command -v code &>/dev/null || brew list --cask visual-studio-code &>/dev/null 2>&1; then
     skip "VS Code already installed"
@@ -234,7 +234,7 @@ install_vscode() {
   fi
 
   # ─── duti ───
-  head "duti"
+  section "duti"
 
   if command -v duti &>/dev/null; then
     skip "Already installed"
@@ -247,7 +247,7 @@ install_vscode() {
 
 install_claude() {
   # ─── Claude Code ───
-  head "Claude Code"
+  section "Claude Code"
 
   # Detect and offer to remove Homebrew formula version (conflicts with native installer)
   # Note: `brew list claude` matches the Claude Desktop cask — check formula only
@@ -289,7 +289,7 @@ install_claude() {
   fi
 
   # ─── Claude Desktop ───
-  head "Claude Desktop"
+  section "Claude Desktop"
 
   if [[ -d "/Applications/Claude.app" ]] || brew list --cask claude &>/dev/null 2>&1; then
     skip "Already installed: Claude.app"
@@ -303,7 +303,7 @@ install_claude() {
   fi
 
   # ─── CodexBar ───
-  head "CodexBar"
+  section "CodexBar"
 
   if [[ -d "/Applications/CodexBar.app" ]] || brew list --cask codexbar &>/dev/null 2>&1; then
     skip "Already installed: CodexBar.app"
@@ -324,7 +324,7 @@ install_claude() {
 # ═══════════════════════════════════════════════════════════════
 
 configure_devbase() {
-  head "Git global config"
+  section "Git global config"
 
   GITIGNORE_SRC="$(fetch_config "git/gitignore_global")"
   GITIGNORE_DST="$HOME/.gitignore_global"
@@ -384,7 +384,7 @@ configure_devbase() {
 
 configure_terminal() {
   # ─── Terminal.app Pro profile ───
-  head "Terminal.app Pro profile"
+  section "Terminal.app Pro profile"
 
   PRO_TERMINAL="$(fetch_config "terminal/Pro.terminal")"
   if [[ -z "$PRO_TERMINAL" || ! -f "$PRO_TERMINAL" ]]; then
@@ -464,7 +464,7 @@ os.remove('/tmp/terminal-import.plist')
   esac
 
   # ─── Shell prompt ───
-  head "Shell prompt"
+  section "Shell prompt"
 
   SHELL_RC="$HOME/.zshrc"
   PROMPT_LINE="PROMPT='%1~ % '"
@@ -495,7 +495,7 @@ configure_vscode() {
   VSCODE_CONFIG_DIR="$HOME/Library/Application Support/Code/User"
 
   # ─── code CLI in PATH ───
-  head "VS Code CLI"
+  section "VS Code CLI"
 
   VSCODE_BIN="/Applications/Visual Studio Code.app/Contents/Resources/app/bin"
   if command -v code &>/dev/null; then
@@ -516,7 +516,7 @@ configure_vscode() {
   fi
 
   # ─── Projects directory ───
-  head "Projects directory"
+  section "Projects directory"
 
   PROJECTS_DIR="$HOME/Projects"
   if [ -d "$PROJECTS_DIR" ]; then
@@ -535,7 +535,7 @@ configure_vscode() {
   fi
 
   # ─── Essential extensions ───
-  head "Essential extensions"
+  section "Essential extensions"
 
   INSTALLED_EXTENSIONS=$(code --list-extensions 2>/dev/null || true)
 
@@ -562,7 +562,7 @@ configure_vscode() {
 
   # ─── Optional extensions (--extended) ───
   if $EXTENDED; then
-    head "Optional extensions"
+    section "Optional extensions"
 
     ask_install() {
       local ext="$1"
@@ -586,7 +586,7 @@ configure_vscode() {
   fi
 
   # ─── Config files ───
-  head "Config files"
+  section "Config files"
 
   mkdir -p "$VSCODE_CONFIG_DIR"
 
@@ -640,7 +640,7 @@ configure_vscode() {
 }
 
 configure_vscode_assoc() {
-  head "File associations"
+  section "File associations"
 
   if ! command -v duti &>/dev/null; then
     fail "duti not found — install it first (bash bootstrap.sh --install)"
@@ -666,16 +666,25 @@ configure_vscode_assoc() {
       current_bundle=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
     fi
 
-    # Normalize: check if VS Code is the handler
-    if echo "$current_bundle" | grep -qi "com.microsoft.VSCode\|Visual Studio Code"; then
+    # Filter out error responses (-1, numeric codes, empty)
+    if [ -z "$current_bundle" ] || [ "$current_bundle" = "null" ] || [[ "$current_bundle" =~ ^-?[0-9]+$ ]]; then
+      current_bundle=""
+    fi
+
+    # Check if VS Code is already the handler
+    if [ -n "$current_bundle" ] && echo "$current_bundle" | grep -qiE "com.microsoft.VSCode|Visual Studio Code"; then
       skip "$label already opens in VS Code"
       return
     fi
 
-    # If there's a current handler (and it's not empty/error), ask before changing
-    if [ -n "$current_bundle" ] && [ "$current_bundle" != "null" ] && [[ ! "$current_bundle" =~ ^-?[0-9]+$ ]]; then
+    # If there's a current handler, ask before changing
+    if [ -n "$current_bundle" ]; then
       local display_name
-      display_name=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || echo "$current_bundle")
+      display_name=$(duti -x "${label#.}" 2>/dev/null | head -1) || true
+      # Filter error responses from display too
+      if [ -z "$display_name" ] || [[ "$display_name" =~ ^-?[0-9]+$ ]]; then
+        display_name="$current_bundle"
+      fi
       read -rp "$(echo "${blue}▸${reset} $label currently opens in: $display_name. Set to VS Code? [y/N] ")" answer
       if [[ ! "$answer" =~ ^[Yy]$ ]]; then
         return
@@ -702,7 +711,7 @@ configure_vscode_assoc() {
 }
 
 configure_claude() {
-  head "Claude ecosystem"
+  section "Claude ecosystem"
 
   # ─── Chrome extension ───
   read -rp "$(echo "${blue}▸${reset} Open Chrome Web Store to install Claude extension? [y/N] ")" answer
@@ -714,7 +723,7 @@ configure_claude() {
   fi
 
   # ─── CodexBar config ───
-  head "CodexBar config"
+  section "CodexBar config"
 
   CODEXBAR_SRC="$(fetch_config "codexbar/config.json")"
   CODEXBAR_DST="$HOME/.codexbar/config.json"
@@ -742,7 +751,7 @@ configure_claude() {
   fi
 
   # ─── CodexBar preferences ───
-  head "CodexBar preferences"
+  section "CodexBar preferences"
 
   CODEXBAR_PLIST="$(fetch_config "codexbar/defaults.plist")"
 
@@ -754,7 +763,7 @@ configure_claude() {
   fi
 
   # ─── Claude Code company rules ───
-  head "Claude Code company rules"
+  section "Claude Code company rules"
 
   DJTL_SRC="$(fetch_config "claude/CLAUDE-djtl.md")"
   DJTL_DST="$HOME/.claude/CLAUDE-djtl.md"
@@ -768,7 +777,7 @@ configure_claude() {
   fi
 
   # ─── Global CLAUDE.md ───
-  head "Global CLAUDE.md"
+  section "Global CLAUDE.md"
 
   GLOBAL_CLAUDE="$HOME/.claude/CLAUDE.md"
   if [[ ! -f "$GLOBAL_CLAUDE" ]]; then
@@ -794,7 +803,7 @@ CLAUDEEOF
   fi
 
   # ─── new-project script ───
-  head "new-project script"
+  section "new-project script"
 
   NEWPROJ_SRC="$(fetch_config "claude/new-project.sh")"
   if [[ -z "$NEWPROJ_SRC" || ! -f "$NEWPROJ_SRC" ]]; then
@@ -823,7 +832,7 @@ CLAUDEEOF
   fi
 
   # ─── Manual steps ───
-  head "Manual steps needed"
+  section "Manual steps needed"
   echo
 
   MANUAL_STEPS=0
@@ -872,7 +881,7 @@ $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260312-2233"
+BOOTSTRAP_BUILD="260312-2246"
 # Append git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   GIT_HASH=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
@@ -917,6 +926,6 @@ if do_configure; then
 fi
 
 echo
-head "Done"
+section "Done"
 echo
 ok "Bootstrap complete (phase: ${PHASES% }, sections: ${SECTIONS% })"
