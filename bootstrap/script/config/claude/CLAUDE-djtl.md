@@ -19,3 +19,10 @@
 ## Memory & Knowledge
 - Don't use `.claude/projects/*/memory/` auto-memory, store all knowledge in workspaces.
 - "remember" or "put in memory" means "store in CLAUDE.md"
+
+## Kyblik
+- `kyblik/` is a general-purpose bucket folder (globally gitignored) for files that don't have a clear home yet. Can live anywhere in the project tree — defaults to project root unless there's a reason to go deeper.
+- When placing files there, always provide a clickable link: `[filename](kyblik/filename)` so the user can inspect immediately.
+- `kyblik/tmp/` — session-scoped temporary files. Visible to the user, useful during the current session, but no lasting value. Working tool outputs, intermediate results the user wants to inspect. Can be cleaned up between sessions.
+- Regular `kyblik/` files (outside tmp) — files that have value but need further sorting or placement. Claude doesn't know where they belong yet, so they wait here for the user to triage.
+- If unsure whether to use an existing kyblik or create one in a subfolder, ask.

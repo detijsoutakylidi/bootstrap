@@ -8,3 +8,6 @@ __pycache__/
 
 # Double-dot convention: rename file.md → file..md to hide from git
 *..*
+
+# Kyblik — bucket folder for files without a clear home yet
+kyblik/
