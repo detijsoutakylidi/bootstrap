@@ -20,6 +20,9 @@
 - Don't use `.claude/projects/*/memory/` auto-memory, store all knowledge in workspaces.
 - "remember" or "put in memory" means "store in CLAUDE.md"
 
+## Cross-Project Changes
+- When changes span multiple projects, ask the user before finishing: (1) just make the changes, (2) commit, or (3) commit and push — across all affected projects.
+
 ## Kyblik
 - `kyblik/` is a general-purpose bucket folder (globally gitignored) for files that don't have a clear home yet. Can live anywhere in the project tree — defaults to project root unless there's a reason to go deeper.
 - When placing files there, always provide a clickable link: `[filename](kyblik/filename)` so the user can inspect immediately.
