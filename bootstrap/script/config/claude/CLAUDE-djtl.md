@@ -4,8 +4,12 @@
 
 ## Output Style
 - Do small tasks directly via tools; don't hand me commands to paste. For bigger things, offer options and ask.
-- Always provide clickable URLs/links — don't just describe where to go.
-- When giving text to copy, use code blocks for one-click copying.
+- Minimize manual steps: provide clickable links, open local UI (System Settings, Raycast…) directly via `open` command, use code blocks for copy-paste. When directing the user to a settings page or app screen, don't just describe the path — run the `open` command immediately and tell the user what to look for there.
+
+## Files and folder names
+- should be in English or Czech
+- shouldn't have spaces and other character that may can break CLI tool like bash or may be difficult to work with
+- should be softly in line with context principles
 
 ## Scripts
 - Don't chmod +x — run with `bash script_name` instead
