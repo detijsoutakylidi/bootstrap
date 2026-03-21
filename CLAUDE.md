@@ -47,6 +47,16 @@ Both scripts auto-detect admin status, are idempotent, and support cloud install
 - **update.md** — instructions for Claude to follow when syncing the scripts with the current machine's config
 - **config/** — config files with placeholders (`__HOME__`, `__PROJECTS_DIR__`) substituted at runtime
 
+### Project-scope configs
+
+```
+bootstrap/project/                 # Project-scope config templates (copied into projects, not deployed globally)
+└── laravel-boost/
+    └── boost.json                 # Laravel Boost pre-config (DJTL defaults: Claude Code, Herd MCP, Livewire/Tailwind/Flux skills)
+```
+
+Reference doc for Laravel Boost setup lives in the `tools` project: `docs/laravel-boost.md`.
+
 ## CLAUDE.md Architecture
 
 Each scope (global and per-project) uses multiple CLAUDE files auto-loaded by Claude Code:

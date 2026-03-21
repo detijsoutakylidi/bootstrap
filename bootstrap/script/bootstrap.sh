@@ -578,7 +578,32 @@ configure_vscode() {
       fi
     }
 
-    ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP)"
+    # ─── PHP tools ───
+    ask_install "bmewburn.vscode-intelephense-client"   "Intelephense (PHP) — VS Code"
+
+    if ! command -v intelephense &>/dev/null; then
+      read -rp "$(echo "${blue}▸${reset} Install Intelephense CLI (for Claude Code LSP)? [y/N] ")" answer
+      if [[ "$answer" =~ ^[Yy]$ ]]; then
+        npm install -g intelephense
+        ok "Intelephense CLI installed"
+      fi
+    else
+      skip "Intelephense CLI already installed"
+    fi
+
+    if command -v claude &>/dev/null; then
+      if ! claude plugin list 2>/dev/null | grep -q "php-lsp"; then
+        read -rp "$(echo "${blue}▸${reset} Install php-lsp Claude Code plugin? [y/N] ")" answer
+        if [[ "$answer" =~ ^[Yy]$ ]]; then
+          claude plugin install php-lsp@claude-plugins-official
+          ok "php-lsp plugin installed"
+        fi
+      else
+        skip "php-lsp plugin already installed"
+      fi
+    fi
+
+    # ─── Other extensions ───
     ask_install "britesnow.vscode-toggle-quotes"         "Toggle Quotes"
     ask_install "hashicorp.terraform"                    "Terraform"
     ask_install "highagency.pencildev"                   "Pencil"
