@@ -18,6 +18,7 @@ bootstrap/                         # Subdirectory (not the project root)
 └── script/
     ├── bootstrap.sh               # macOS: bash <(curl -fsSL <raw-url>)
     ├── bootstrap.ps1              # Windows: irm <raw-url> | iex
+    ├── test-merge.sh              # Tests for merge functions (bash test-merge.sh)
     └── config/
         ├── git/
         │   └── gitignore_global
@@ -30,6 +31,9 @@ bootstrap/                         # Subdirectory (not the project root)
         │   ├── new-project.ps1        # Windows project creation script
         │   ├── project-en.md          # CLAUDE.md template for new projects
         │   └── personal-en.md         # CLAUDE-personal-project..md template
+        ├── codexbar/
+        │   ├── config.json            # CodexBar provider config
+        │   └── defaults.plist         # CodexBar app preferences
         └── vscode/
             ├── settings.json          # Shared (placeholders substituted at runtime)
             ├── keybindings.json       # macOS (cmd-based)
