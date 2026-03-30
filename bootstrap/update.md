@@ -106,7 +106,7 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 
 ### 12. Finalize
 
-- Verify `config/vscode/settings.json` still has `__HOME__` and `__PROJECTS_DIR__` placeholders
+- Verify `config/vscode/settings.json` still has `__HOME__` and `__PROJECTS_DIR__` placeholders (e.g. `projectManager.git.baseFolders` must use `__PROJECTS_DIR__`, not a machine-specific path like `~/Local Sites`)
 - Verify `bootstrap.ps1` extension lists match `bootstrap.sh`
 - Ask whether to commit the changes
 

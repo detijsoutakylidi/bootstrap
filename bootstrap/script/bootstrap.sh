@@ -68,6 +68,345 @@ skip()  { echo "${yellow}⊘${reset} $1"; }
 fail()  { echo "${red}✘${reset} $1"; }
 section()  { echo; echo "${reset}⎯ $1 ⎯${reset}"; }
 
+# ─── Merge helpers ─────────────────────────────────────────
+
+# Merge two line-based config files (e.g., gitignore)
+# Usage: merge_lines_config <src_path> <dst_path> <label>
+merge_lines_config() {
+  local src="$1" dst="$2" label="$3"
+
+  if [[ ! -f "$dst" ]]; then
+    cp "$src" "$dst"
+    ok "$label installed → $dst"
+    return
+  fi
+
+  if diff -q "$src" "$dst" &>/dev/null; then
+    skip "$label already up to date"
+    return
+  fi
+
+  info "$label differs from setup version."
+  read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite / [M]erge? [s/o/m] ")" choice
+  case "$choice" in
+    [oO])
+      cp "$src" "$dst"
+      ok "$label overwritten"
+      ;;
+    [mM])
+      # Collect non-empty, non-comment lines (bash 3.2 compatible)
+      local_lines=()
+      while IFS= read -r line; do local_lines+=("$line"); done < <(grep -vE '^$|^#' "$dst" 2>/dev/null || true)
+      setup_lines=()
+      while IFS= read -r line; do setup_lines+=("$line"); done < <(grep -vE '^$|^#' "$src" 2>/dev/null || true)
+
+      # Classify entries using linear search (no associative arrays)
+      _in_list() { local needle="$1"; shift; for item; do [[ "$item" == "$needle" ]] && return 0; done; return 1; }
+
+      common=(); local_only=(); new_lines=()
+      for e in "${local_lines[@]}"; do
+        if _in_list "$e" "${setup_lines[@]}"; then common+=("$e"); else local_only+=("$e"); fi
+      done
+      for e in "${setup_lines[@]}"; do
+        _in_list "$e" "${local_lines[@]}" || new_lines+=("$e")
+      done
+
+      MERGED=()
+
+      # 1. Identical — auto-keep
+      if [[ ${#common[@]} -gt 0 ]]; then
+        skip "${#common[@]} entries identical — keeping"
+        MERGED+=("${common[@]}")
+      fi
+
+      # 2. Local-only — ask
+      if [[ ${#local_only[@]} -gt 0 ]]; then
+        echo
+        info "${#local_only[@]} entries only in local:"
+        for e in "${local_only[@]}"; do echo "  $e"; done
+        read -rp "$(echo "${blue}▸${reset} [K]eep all / keep [S]electively / [D]rop all? [k/s/d] ")" ans
+        case "$ans" in
+          [dD]) ;;
+          [sS])
+            for e in "${local_only[@]}"; do
+              read -rp "$(echo "${blue}▸${reset}   Keep \"$e\"? [Y/n] ")" c
+              [[ ! "$c" =~ ^[Nn]$ ]] && MERGED+=("$e")
+            done
+            ;;
+          *) MERGED+=("${local_only[@]}") ;;
+        esac
+      fi
+
+      # 3. New from setup — ask
+      if [[ ${#new_lines[@]} -gt 0 ]]; then
+        echo
+        info "${#new_lines[@]} new entries from setup:"
+        for e in "${new_lines[@]}"; do echo "  $e"; done
+        read -rp "$(echo "${blue}▸${reset} [M]erge all / merge [S]electively / s[K]ip all? [m/s/k] ")" ans
+        case "$ans" in
+          [kK]) ;;
+          [sS])
+            for e in "${new_lines[@]}"; do
+              read -rp "$(echo "${blue}▸${reset}   Add \"$e\"? [Y/n] ")" c
+              [[ ! "$c" =~ ^[Nn]$ ]] && MERGED+=("$e")
+            done
+            ;;
+          *) MERGED+=("${new_lines[@]}") ;;
+        esac
+      fi
+
+      printf '%s\n' "${MERGED[@]}" > "$dst"
+      ok "$label merged"
+      ;;
+    *)
+      skip "Kept existing $label"
+      ;;
+  esac
+}
+
+# Merge two JSON/JSONC config files with intelligent key-based diffing
+# Usage: merge_json_config <src_content> <dst_path> <label> <merge_type>
+#   merge_type: "object" for flat JSON objects (settings.json, codexbar)
+#               "array:field1,field2" for arrays identified by fields (keybindings)
+merge_json_config() {
+  local src_content="$1" dst="$2" label="$3" merge_type="${4:-object}"
+
+  if [[ ! -f "$dst" ]]; then
+    mkdir -p "$(dirname "$dst")"
+    echo "$src_content" > "$dst"
+    ok "$label installed"
+    return
+  fi
+
+  if diff -q <(echo "$src_content") "$dst" &>/dev/null; then
+    skip "$label already up to date"
+    return
+  fi
+
+  info "$label differs from setup version."
+  read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite / [M]erge? [s/o/m] ")" choice
+  case "$choice" in
+    [oO])
+      echo "$src_content" > "$dst"
+      ok "$label overwritten"
+      ;;
+    [mM])
+      local tmp_setup="$TMPDIR_BOOTSTRAP/merge_setup_$$"
+      local tmp_output="$TMPDIR_BOOTSTRAP/merge_output_$$"
+      echo "$src_content" > "$tmp_setup"
+
+      MERGE_SETUP="$tmp_setup" MERGE_LOCAL="$dst" MERGE_OUTPUT="$tmp_output" \
+        MERGE_TYPE="$merge_type" python3 <<'PYEOF'
+import os, sys, json, re
+
+B = '\033[1;34m'
+G = '\033[1;32m'
+Y = '\033[1;33m'
+R = '\033[0m'
+
+def strip_jsonc(text):
+    lines = []
+    for line in text.split('\n'):
+        out, in_str, esc = [], False, False
+        for i, c in enumerate(line):
+            if esc:
+                out.append(c); esc = False; continue
+            if c == '\\' and in_str:
+                out.append(c); esc = True; continue
+            if c == '"':
+                in_str = not in_str
+            if not in_str and c == '/' and i + 1 < len(line) and line[i + 1] == '/':
+                break
+            out.append(c)
+        lines.append(''.join(out))
+    return re.sub(r',(\s*[}\]])', r'\1', '\n'.join(lines))
+
+def parse(text):
+    return json.loads(strip_jsonc(text))
+
+def ask(prompt):
+    tty = sys.stdin if os.environ.get('MERGE_TEST') else open('/dev/tty')
+    sys.stdout.write(f"{B}\u25b8{R} {prompt}")
+    sys.stdout.flush()
+    ans = tty.readline().strip()
+    if tty is not sys.stdin:
+        tty.close()
+    return ans
+
+def fmt(v):
+    s = json.dumps(v)
+    return s if len(s) <= 80 else s[:77] + '...'
+
+def merge_objects(local, setup):
+    local_keys, setup_keys = set(local), set(setup)
+    both = local_keys & setup_keys
+    same = sorted(k for k in both if json.dumps(local[k], sort_keys=True) == json.dumps(setup[k], sort_keys=True))
+    diff = sorted(k for k in both if k not in set(same))
+    only_local = sorted(local_keys - setup_keys)
+    only_setup = sorted(setup_keys - local_keys)
+    keep = {}
+
+    if same:
+        print(f"{Y}\u2298{R} {len(same)} settings identical \u2014 keeping")
+        for k in same: keep[k] = local[k]
+
+    if diff:
+        print(f"\n{B}\u25b8{R} {len(diff)} settings have different values:")
+        for k in diff:
+            print(f"  {k}:")
+            print(f"    local: {fmt(local[k])}")
+            print(f"    setup: {fmt(setup[k])}")
+        ans = ask("[L]ocal all / [S]etup all / choose [E]ach? [l/s/e] ").lower()
+        for k in diff:
+            if ans == 's':
+                keep[k] = setup[k]
+            elif ans == 'e':
+                print(f"  {k}: local={fmt(local[k])} \u2192 setup={fmt(setup[k])}")
+                c = ask(f"  Use [L]ocal / [S]etup? [l/s] ").lower()
+                keep[k] = setup[k] if c == 's' else local[k]
+            else:
+                keep[k] = local[k]
+
+    if only_local:
+        print(f"\n{B}\u25b8{R} {len(only_local)} settings only in local:")
+        for k in only_local: print(f"  {k}: {fmt(local[k])}")
+        ans = ask("[K]eep all / keep [S]electively / [D]rop all? [k/s/d] ").lower()
+        for k in only_local:
+            if ans == 'd': continue
+            elif ans == 's':
+                c = ask(f"  Keep {k}? [Y/n] ").lower()
+                if c != 'n': keep[k] = local[k]
+            else: keep[k] = local[k]
+
+    if only_setup:
+        print(f"\n{B}\u25b8{R} {len(only_setup)} new settings from setup:")
+        for k in only_setup: print(f"  {k}: {fmt(setup[k])}")
+        ans = ask("[M]erge all / merge [S]electively / s[K]ip all? [m/s/k] ").lower()
+        for k in only_setup:
+            if ans == 'k': continue
+            elif ans == 's':
+                c = ask(f"  Add {k}? [Y/n] ").lower()
+                if c != 'n': keep[k] = setup[k]
+            else: keep[k] = setup[k]
+
+    # Preserve order: setup keys first, then local-only
+    ordered = {}
+    for k in setup:
+        if k in keep: ordered[k] = keep[k]
+    for k in local:
+        if k in keep and k not in ordered: ordered[k] = keep[k]
+    return ordered
+
+def merge_arrays(local, setup, id_fields):
+    def eid(e): return tuple(e.get(f, '') for f in id_fields)
+    def label(e): return ' + '.join(str(e.get(f, '')) for f in id_fields if e.get(f))
+
+    local_map = {eid(e): e for e in local}
+    setup_map = {eid(e): e for e in setup}
+    local_ids, setup_ids = set(local_map), set(setup_map)
+    both = local_ids & setup_ids
+    same = sorted(k for k in both if json.dumps(local_map[k], sort_keys=True) == json.dumps(setup_map[k], sort_keys=True))
+    diff = sorted(k for k in both if k not in set(same))
+    only_local = sorted(local_ids - setup_ids)
+    only_setup = sorted(setup_ids - local_ids)
+    keep = {}
+
+    if same:
+        print(f"{Y}\u2298{R} {len(same)} entries identical \u2014 keeping")
+        for k in same: keep[k] = local_map[k]
+
+    if diff:
+        print(f"\n{B}\u25b8{R} {len(diff)} entries have different values:")
+        for k in diff:
+            print(f"  {label(local_map[k])}:")
+            print(f"    local: {fmt(local_map[k])}")
+            print(f"    setup: {fmt(setup_map[k])}")
+        ans = ask("[L]ocal all / [S]etup all / choose [E]ach? [l/s/e] ").lower()
+        for k in diff:
+            if ans == 's': keep[k] = setup_map[k]
+            elif ans == 'e':
+                c = ask(f"  {label(local_map[k])}: [L]ocal / [S]etup? [l/s] ").lower()
+                keep[k] = setup_map[k] if c == 's' else local_map[k]
+            else: keep[k] = local_map[k]
+
+    if only_local:
+        print(f"\n{B}\u25b8{R} {len(only_local)} entries only in local:")
+        for k in only_local: print(f"  {label(local_map[k])}")
+        ans = ask("[K]eep all / keep [S]electively / [D]rop all? [k/s/d] ").lower()
+        for k in only_local:
+            if ans == 'd': continue
+            elif ans == 's':
+                c = ask(f"  Keep {label(local_map[k])}? [Y/n] ").lower()
+                if c != 'n': keep[k] = local_map[k]
+            else: keep[k] = local_map[k]
+
+    if only_setup:
+        print(f"\n{B}\u25b8{R} {len(only_setup)} new entries from setup:")
+        for k in only_setup: print(f"  {label(setup_map[k])}")
+        ans = ask("[M]erge all / merge [S]electively / s[K]ip all? [m/s/k] ").lower()
+        for k in only_setup:
+            if ans == 'k': continue
+            elif ans == 's':
+                c = ask(f"  Add {label(setup_map[k])}? [Y/n] ").lower()
+                if c != 'n': keep[k] = setup_map[k]
+            else: keep[k] = setup_map[k]
+
+    # Preserve order: setup first, then local-only
+    result, seen = [], set()
+    for e in setup:
+        k = eid(e)
+        if k in keep and k not in seen: result.append(keep[k]); seen.add(k)
+    for e in local:
+        k = eid(e)
+        if k in keep and k not in seen: result.append(keep[k]); seen.add(k)
+    return result
+
+def main():
+    setup_path = os.environ['MERGE_SETUP']
+    local_path = os.environ['MERGE_LOCAL']
+    output_path = os.environ['MERGE_OUTPUT']
+    merge_type = os.environ.get('MERGE_TYPE', 'object')
+
+    with open(setup_path) as f: setup_data = parse(f.read())
+    with open(local_path) as f: local_data = parse(f.read())
+
+    if json.dumps(local_data, sort_keys=True) == json.dumps(setup_data, sort_keys=True):
+        print(f"{G}\u2714{R} Semantically identical (formatting differs) \u2014 normalizing")
+        with open(output_path, 'w') as f:
+            json.dump(setup_data, f, indent=4, ensure_ascii=False)
+            f.write('\n')
+        return
+
+    if merge_type == 'object':
+        result = merge_objects(local_data, setup_data)
+    elif merge_type.startswith('array:'):
+        result = merge_arrays(local_data, setup_data, merge_type[6:].split(','))
+    else:
+        print(f"Unknown merge type: {merge_type}", file=sys.stderr)
+        sys.exit(1)
+
+    with open(output_path, 'w') as f:
+        json.dump(result, f, indent=4, ensure_ascii=False)
+        f.write('\n')
+
+if __name__ == '__main__':
+    main()
+PYEOF
+
+      if [[ -f "$tmp_output" ]]; then
+        cp "$tmp_output" "$dst"
+        ok "$label merged"
+      else
+        fail "Merge failed for $label"
+      fi
+      rm -f "$tmp_setup" "$tmp_output"
+      ;;
+    *)
+      skip "Kept existing $label"
+      ;;
+  esac
+}
+
 # ─── Argument parsing ───────────────────────────────────────
 
 PHASE_INSTALL=false
@@ -331,55 +670,10 @@ configure_devbase() {
 
   if [[ -z "$GITIGNORE_SRC" || ! -f "$GITIGNORE_SRC" ]]; then
     fail "gitignore_global not found (local or remote)"
-  elif [[ ! -f "$GITIGNORE_DST" ]]; then
-    cp "$GITIGNORE_SRC" "$GITIGNORE_DST"
-    git config --global core.excludesFile "$GITIGNORE_DST"
-    ok "Global gitignore installed → $GITIGNORE_DST"
-  elif diff -q "$GITIGNORE_SRC" "$GITIGNORE_DST" &>/dev/null; then
-    git config --global core.excludesFile "$GITIGNORE_DST"
-    skip "Global gitignore already up to date"
   else
-    info "Current ~/.gitignore_global:"
-    sed 's/^/    /' "$GITIGNORE_DST"
-    echo
-    info "New gitignore_global from setup:"
-    sed 's/^/    /' "$GITIGNORE_SRC"
-    echo
-    read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite / [M]erge entry by entry? [s/o/m] ")" choice
-    case "$choice" in
-      [oO])
-        cp "$GITIGNORE_SRC" "$GITIGNORE_DST"
-        ok "Global gitignore overwritten"
-        ;;
-      [mM])
-        mapfile -t all_entries < <(cat "$GITIGNORE_DST" "$GITIGNORE_SRC" | grep -v '^$' | sort -u)
-        mapfile -t current < <(grep -v '^$' "$GITIGNORE_DST" 2>/dev/null || true)
-        MERGED=()
-        for entry in "${all_entries[@]}"; do
-          in_current=false
-          in_new=false
-          for c in "${current[@]}"; do [[ "$c" == "$entry" ]] && in_current=true && break; done
-          while IFS= read -r n; do [[ "$n" == "$entry" ]] && in_new=true && break; done < <(grep -v '^$' "$GITIGNORE_SRC")
-          if $in_current && $in_new; then
-            MERGED+=("$entry")
-            skip "Keep: $entry (in both)"
-          elif $in_current; then
-            read -rp "$(echo "${blue}▸${reset} Keep \"$entry\" (only in current)? [Y/n] ")" ans
-            [[ ! "$ans" =~ ^[Nn]$ ]] && MERGED+=("$entry")
-          else
-            read -rp "$(echo "${blue}▸${reset} Add \"$entry\" (new from setup)? [Y/n] ")" ans
-            [[ ! "$ans" =~ ^[Nn]$ ]] && MERGED+=("$entry")
-          fi
-        done
-        printf '%s\n' "${MERGED[@]}" > "$GITIGNORE_DST"
-        ok "Global gitignore merged"
-        ;;
-      *)
-        skip "Kept existing global gitignore"
-        ;;
-    esac
-    git config --global core.excludesFile "$GITIGNORE_DST"
+    merge_lines_config "$GITIGNORE_SRC" "$GITIGNORE_DST" "Global gitignore"
   fi
+  git config --global core.excludesFile "$GITIGNORE_DST"
 }
 
 configure_terminal() {
@@ -615,39 +909,12 @@ configure_vscode() {
 
   mkdir -p "$VSCODE_CONFIG_DIR"
 
-  install_config() {
-    local src_content="$1"
-    local dst="$2"
-    local label="$3"
-
-    if [[ ! -f "$dst" ]]; then
-      echo "$src_content" > "$dst"
-      ok "$label installed"
-    elif diff -q <(echo "$src_content") "$dst" &>/dev/null; then
-      skip "$label already up to date"
-    else
-      info "$label differs from setup version:"
-      diff --unified=3 "$dst" <(echo "$src_content") | head -40 || true
-      echo
-      read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
-      case "$choice" in
-        [oO])
-          echo "$src_content" > "$dst"
-          ok "$label overwritten"
-          ;;
-        *)
-          skip "Kept existing $label"
-          ;;
-      esac
-    fi
-  }
-
   SETTINGS_SRC="$(fetch_config "vscode/settings.json")"
   if [[ -n "$SETTINGS_SRC" && -f "$SETTINGS_SRC" ]]; then
     RENDERED_SETTINGS=$(sed -e "s|__HOME__|$HOME|g" \
         -e "s|__PROJECTS_DIR__|$PROJECTS_DIR|g" \
         "$SETTINGS_SRC")
-    install_config "$RENDERED_SETTINGS" "$VSCODE_CONFIG_DIR/settings.json" "settings.json"
+    merge_json_config "$RENDERED_SETTINGS" "$VSCODE_CONFIG_DIR/settings.json" "settings.json" "object"
   else
     fail "settings.json not found (local or remote)"
   fi
@@ -655,7 +922,7 @@ configure_vscode() {
   KEYBINDINGS_SRC="$(fetch_config "vscode/keybindings.json")"
   if [[ -n "$KEYBINDINGS_SRC" && -f "$KEYBINDINGS_SRC" ]]; then
     KEYBINDINGS_CONTENT=$(cat "$KEYBINDINGS_SRC")
-    install_config "$KEYBINDINGS_CONTENT" "$VSCODE_CONFIG_DIR/keybindings.json" "keybindings.json"
+    merge_json_config "$KEYBINDINGS_CONTENT" "$VSCODE_CONFIG_DIR/keybindings.json" "keybindings.json" "array:key,command"
   else
     fail "keybindings.json not found (local or remote)"
   fi
@@ -755,24 +1022,8 @@ configure_claude() {
 
   if [[ -z "$CODEXBAR_SRC" || ! -f "$CODEXBAR_SRC" ]]; then
     fail "codexbar/config.json not found (local or remote)"
-  elif [[ ! -f "$CODEXBAR_DST" ]]; then
-    mkdir -p "$HOME/.codexbar"
-    cp "$CODEXBAR_SRC" "$CODEXBAR_DST"
-    ok "CodexBar config installed → $CODEXBAR_DST"
-  elif diff -q "$CODEXBAR_SRC" "$CODEXBAR_DST" &>/dev/null; then
-    skip "CodexBar config already up to date"
   else
-    info "CodexBar config differs from setup version."
-    read -rp "$(echo "${blue}▸${reset} [S]kip / [O]verwrite? [s/o] ")" choice
-    case "$choice" in
-      [oO])
-        cp "$CODEXBAR_SRC" "$CODEXBAR_DST"
-        ok "CodexBar config overwritten"
-        ;;
-      *)
-        skip "Kept existing CodexBar config"
-        ;;
-    esac
+    merge_json_config "$(cat "$CODEXBAR_SRC")" "$CODEXBAR_DST" "CodexBar config" "array:id"
   fi
 
   # ─── CodexBar preferences ───

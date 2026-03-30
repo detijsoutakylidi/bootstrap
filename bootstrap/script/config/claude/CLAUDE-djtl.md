@@ -11,6 +11,10 @@
 - shouldn't have spaces and other character that may can break CLI tool like bash or may be difficult to work with
 - should be softly in line with context principles
 
+## Paths
+- Never write `/Users/martin/Local Sites/` in code or docs — use `~/Projects/` instead. A symlink handles resolution.
+- If you encounter existing `Local Sites` paths, flag them but don't bulk-replace without asking.
+
 ## Scripts
 - Don't chmod +x — run with `bash script_name` instead
 
@@ -26,6 +30,11 @@
 
 ## Cross-Project Changes
 - When changes span multiple projects, ask the user before finishing: (1) just make the changes, (2) commit, or (3) commit and push — across all affected projects.
+
+## Session Retention
+- `cleanupPeriodDays: 99999` in `~/.claude/settings.json` — prevents automatic deletion of session JSONL files
+- Default is 30 days — sessions inactive longer are hard-deleted at startup (no trash, no recovery)
+- Backup hook `~/.claude/hooks/backup-sessions.sh` mirrors `~/.claude/projects/` to `~/.claude/backups/sessions/` on every SessionStart
 
 ## Kyblik
 - `kyblik/` is a general-purpose bucket folder (globally gitignored) for files that don't have a clear home yet. Can live anywhere in the project tree — defaults to project root unless there's a reason to go deeper.

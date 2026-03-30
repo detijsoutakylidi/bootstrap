@@ -3,12 +3,13 @@
     {
       "cookieSource" : "off",
       "enabled" : false,
-      "id" : "codex"
+      "id" : "codex",
+      "source" : "auto"
     },
     {
       "enabled" : true,
       "id" : "claude",
-      "source" : "cli"
+      "source" : "auto"
     },
     {
       "enabled" : false,
@@ -77,6 +78,18 @@
     {
       "enabled" : false,
       "id" : "warp"
+    },
+    {
+      "enabled" : false,
+      "id" : "kilo"
+    },
+    {
+      "enabled" : false,
+      "id" : "ollama"
+    },
+    {
+      "enabled" : false,
+      "id" : "openrouter"
     }
   ],
   "version" : 1

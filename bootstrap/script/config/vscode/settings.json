@@ -27,6 +27,7 @@
     // explorer & search — file tree behavior, search scope
     "explorer.autoReveal": false,
     "explorer.confirmDragAndDrop": false,
+    "explorer.confirmDelete": false,
     "search.useGlobalIgnoreFiles": true,
     "search.useParentIgnoreFiles": true,
 
@@ -76,9 +77,6 @@
     "editor.gotoLocation.multipleDeclarations": "goto",
     "editor.gotoLocation.multipleImplementations": "goto",
     "editor.gotoLocation.multipleTypeDefinitions": "goto",
-
-    // silence the noise — disable visual clutter and distractions
-    "breadcrumbs.enabled": false,
     "editor.lightbulb.enabled": "off",
     "editor.selectionHighlight": false,
     "editor.overviewRulerBorder": false,
@@ -97,6 +95,8 @@
     "scm.diffDecorationsGutterVisibility": "always",
     "scm.diffDecorationsGutterWidth": 2,
     "git.decorations.enabled": false,
+    "git.confirmSync": false,
+    "git.openRepositoryInParentFolders": "never",
 
     // files — whitespace trimming, final newline
     "files.trimTrailingWhitespace": true,
@@ -133,7 +133,6 @@
 
     // extension — Claude Code
     "claudeCode.preferredLocation": "panel",
-    "claudeCode.enableNewConversationShortcut": false,
     "claudeCode.hideOnboarding": true,
     "claudeCode.useCtrlEnterToSend": false,
     "claudeCode.selectedModel": "default",
@@ -151,10 +150,6 @@
       "djtl"
     ],
     "projectManager.sortList": "Name",
-
-    // extension — Git
-    "git.confirmSync": false,
-    "git.openRepositoryInParentFolders": "never",
 
     // extension — Peacock
     "peacock.favoriteColors": [

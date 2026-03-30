@@ -22,7 +22,8 @@ Combined from four individual setup scripts (now deleted — consolidated here):
 - **Shared configs**: `settings.json` and `gitignore_global` are shared across platforms. `keybindings.json` (macOS) and `keybindings-win.json` (Windows) are platform-specific. Terminal profiles are platform-specific.
 - **Windows settings patches**: At runtime, the shared `settings.json` gets macOS-only settings removed (`window.nativeFullScreen`) and `ctrlCmd` replaced with `alt` for multiCursorModifier.
 - **File associations in install phase (Windows)**: `assoc`/`ftype` require admin, so file associations are in Install-Vscode (not Configure-Vscode).
-- **Idempotent**: Every install checks if already present and skips. Every config step compares before overwriting.
+- **Idempotent**: Every install checks if already present and skips. Every config step compares before overwriting. Config updates offer Skip / Overwrite / Merge (intelligent key-based merge for JSON via embedded Python, line-based merge for gitignore).
+- **PS1 out of sync**: `bootstrap.ps1` still uses the old Skip/Overwrite logic for config files. The merge functions (`merge_lines_config`, `merge_json_config`) were only added to `bootstrap.sh`. Port when Windows testing resumes.
 - **CLAUDE-djtl.md**: Always overwritten — company-enforced rules, no skip/ask. Bootstrap ensures global `~/.claude/CLAUDE.md` exists and includes `@CLAUDE-djtl.md` (auto-adds if missing).
 - **new-project scripts**: Deployed to `~/.claude/scripts/` with templates, symlinked into projects directory for easy access. On Windows, symlink creation requires Developer Mode or admin — falls back to copy with warning.
 - **Execution order**: Install: base → vscode → claude. Configure: base → terminal → vscode → claude.
