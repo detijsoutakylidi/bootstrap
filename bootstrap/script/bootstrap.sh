@@ -1078,6 +1078,44 @@ CLAUDEEOF
     skip "~/.claude/CLAUDE.md already includes @CLAUDE-djtl.md"
   fi
 
+  # ─── Claude Code settings ───
+  section "Claude Code settings"
+
+  CLAUDE_SETTINGS="$HOME/.claude/settings.json"
+  if [[ -f "$CLAUDE_SETTINGS" ]] && command -v jq &>/dev/null; then
+    CLEANUP_DAYS=$(jq -r '.cleanupPeriodDays // empty' "$CLAUDE_SETTINGS" 2>/dev/null)
+    if [[ -n "$CLEANUP_DAYS" && "$CLEANUP_DAYS" -ge 90000 ]] 2>/dev/null; then
+      skip "Session retention already set (${CLEANUP_DAYS} days)"
+    else
+      info "Claude Code deletes session history after 30 days by default."
+      info "Sessions contain full conversation context — useful for auditing,"
+      info "resuming work, and extracting knowledge from past sessions."
+      info "Recommended: set cleanupPeriodDays to 90000 (~246 years) to prevent loss."
+      read -rp "$(echo "${blue}▸${reset} Set session retention to 90000 days? [Y/n] ")" answer
+      if [[ ! "$answer" =~ ^[Nn]$ ]]; then
+        jq '.cleanupPeriodDays = 90000' "$CLAUDE_SETTINGS" > "$CLAUDE_SETTINGS.tmp" && mv "$CLAUDE_SETTINGS.tmp" "$CLAUDE_SETTINGS"
+        ok "cleanupPeriodDays set to 90000"
+      else
+        skip "Kept default session retention"
+      fi
+    fi
+  elif [[ ! -f "$CLAUDE_SETTINGS" ]] && command -v jq &>/dev/null; then
+    info "Claude Code deletes session history after 30 days by default."
+    info "Sessions contain full conversation context — useful for auditing,"
+    info "resuming work, and extracting knowledge from past sessions."
+    info "Recommended: set cleanupPeriodDays to 90000 (~246 years) to prevent loss."
+    read -rp "$(echo "${blue}▸${reset} Set session retention to 90000 days? [Y/n] ")" answer
+    if [[ ! "$answer" =~ ^[Nn]$ ]]; then
+      mkdir -p "$HOME/.claude"
+      echo '{"cleanupPeriodDays": 90000}' | jq . > "$CLAUDE_SETTINGS"
+      ok "Created ~/.claude/settings.json with cleanupPeriodDays = 90000"
+    else
+      skip "Kept default session retention"
+    fi
+  else
+    info "jq not available — skipping Claude Code settings check"
+  fi
+
   # ─── new-project script ───
   section "new-project script"
 
