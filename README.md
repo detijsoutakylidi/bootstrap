@@ -1,124 +1,66 @@
-# bootstrap
+# Bootstrap
 
-Setup scripts for bootstrapping a new machine with Claude in VS Code and related tools.
+Skript pro nastavení nového počítače — nainstaluje VS Code, Claude a další nástroje. Podrobná verze v angličtině: [README-en.md](README-en.md)
 
-## macOS
+## Jak na to
+
+### macOS
+
+1. Otevři **Terminal** — stiskni `Cmd + mezerník`, napiš `Terminal` a stiskni Enter
+2. Vlož tento příkaz (klikni na něj pravým tlačítkem → Kopírovat, pak v Terminalu `Cmd + V`):
 
 ```bash
 bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh)
 ```
 
-## Windows
+3. Stiskni **Enter** a postupuj podle pokynů na obrazovce
+
+### Windows
+
+1. Otevři **PowerShell** — klikni pravým tlačítkem na Start (nebo stiskni `Win + X`) a vyber **Windows PowerShell**
+2. Vlož tento příkaz (`Ctrl + V`):
 
 ```powershell
 & ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1)))
 ```
 
----
+3. Stiskni **Enter** a postupuj podle pokynů na obrazovce
 
-Auto-detects admin access. On admin accounts, installs system tools + configures user environment. On standard accounts, configures only (warns about missing tools).
+## Co skript udělá
 
-### Section parameters
+- Nainstaluje **VS Code** (editor pro psaní kódu)
+- Nainstaluje **Claude Code** (AI asistent přímo v editoru)
+- Nainstaluje **Claude Desktop** (samostatná aplikace)
+- Nastaví **editor** — motiv, klávesové zkratky, rozšíření
+- Nastaví **terminál** — barevný profil a prompt
+- Nastaví **přiřazení souborů** — .json, .md a další se budou otvírat ve VS Code
 
-Run specific parts instead of the full bootstrap:
+Skript je bezpečné spustit opakovaně — nic nepřepíše, pokud to neschválíš.
 
+## Nemáš administrátorský účet?
+
+Některé instalace (Homebrew, VS Code, …) vyžadují administrátorská práva. Pokud pracuješ na běžném účtu:
+
+1. Požádej admina, aby spustil instalační část:
+
+**macOS** (admin v Terminalu):
+```bash
+bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --install
 ```
---vscode                   # VS Code only (install + configure)
---configure --terminal     # configure terminal only
---install --base --vscode  # install base + vscode only
+
+**Windows** (admin v PowerShellu):
+```powershell
+& ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1))) --install
 ```
 
-Available sections: `--base`, `--vscode`, `--claude`, `--terminal`
-
-Combinable with `--install` / `--configure` and with each other. No section flags = all sections.
-
-### `--extended`
-
-Enables interactive prompts for optional items (e.g., optional VS Code extensions like Intelephense, Toggle Quotes, Terraform, Pencil). Without this flag, only essential items are installed.
-
-### Non-admin users
-
-If you use a separate standard (non-admin) account for daily work:
+2. Potom na svém účtu spusť konfiguraci:
 
 **macOS:**
-
-1. From your standard account, switch to the admin user and install system tools:
-
-```bash
-su - adminusername
-bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --install
-exit
-```
-
-2. From your standard account — configure your environment:
-
 ```bash
 bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh) --configure
 ```
 
 **Windows:**
-
-1. Open an admin PowerShell from a normal PowerShell:
-
-```powershell
-Start-Process powershell -Verb RunAs
-```
-
-2. In the admin PowerShell, install system tools:
-
-```powershell
-& ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1))) --install
-```
-
-3. From a normal PowerShell — configure your environment:
-
 ```powershell
 & ([scriptblock]::Create((irm https://djtl.cz/gh/bootstrap.ps1))) --configure
 ```
-
-Each script is idempotent — safe to re-run on an already-configured machine.
-
----
-
-## What each section installs / configures
-
-### `--base`
-
-**Install** (requires admin):
-- macOS: Xcode Command Line Tools, Rosetta 2, Homebrew, Git, jq, ripgrep, GitHub CLI
-- Windows: winget check, jq, ripgrep, Git, GitHub CLI (via winget)
-
-**Configure** (user-level):
-- Global gitignore (`~/.gitignore_global`) with skip/overwrite/merge options
-
-### `--vscode`
-
-**Install** (requires admin):
-- Visual Studio Code (brew cask on macOS, winget on Windows)
-- macOS: duti (file association tool)
-- Windows: file associations via assoc/ftype (.json, .xml, .js, .md, .jsonl, .srt, .pub, .tf, .tfstate, .vtt)
-
-**Configure** (user-level):
-- macOS: `code` CLI in PATH
-- Projects directory (default: `~/Projects`)
-- Essential extensions: Claude Code, Catppuccin Theme, Project Manager, Duplicate Action, SFTP, Peacock, Markdown Editor
-- Optional extensions (with `--extended`): Intelephense (PHP), Toggle Quotes, Terraform, Pencil
-- `settings.json` and `keybindings.json` with skip/overwrite options
-- macOS: file associations (.json, .xml, .js, .vtt, .md, .jsonl, .srt, .pub, .tf, .tfstate via duti)
-
-### `--claude`
-
-**Install** (requires admin):
-- Claude Code (native installer)
-- Claude Desktop (brew cask on macOS, winget on Windows)
-- macOS only: CodexBar (brew cask, steipete/tap)
-
-**Configure** (user-level):
-- Opens Chrome Web Store for Claude browser extension
-- Displays manual post-install steps (login, auth, connectors)
-
-### `--terminal`
-
-**Configure only** (no install phase):
-- macOS: Terminal.app Pro profile import with skip/overwrite options, shell prompt in `~/.zshrc`
-- Windows: Windows Terminal Pro color scheme + profile defaults, PowerShell prompt

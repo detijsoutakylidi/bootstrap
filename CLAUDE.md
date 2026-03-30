@@ -75,3 +75,4 @@ Future: track personal global CLAUDE.md in a separate config project and symlink
 
 - **This repo is public.** Never commit secrets, tokens, API keys, passwords, or machine-specific paths. Config files must use placeholders (`__HOME__`, etc.) — verify before every commit.
 - `config/claude/new-project.sh` and templates are copies from project `projects`. On update, re-copy from the source. Bootstrap deploys to `~/.claude/scripts/` and symlinks into the projects directory.
+- **Changelog:** Update `CHANGELOG.md` with every commit. Group entries by date, one line per change.

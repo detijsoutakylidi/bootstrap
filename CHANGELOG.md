@@ -1,11 +1,16 @@
 # Changelog
 
+<!-- Update this file with every commit. Group entries by date. Keep entries concise — one line per change. -->
+
 ## 2026-03-31
 
 - Intelligent config merge: Skip / Overwrite / Merge for VS Code settings, keybindings, CodexBar config, and gitignore. JSON merge uses embedded Python for key-based diffing with JSONC support. Line-based merge for gitignore. All bash 3.2 compatible.
 - Session retention check: bootstrap now checks `cleanupPeriodDays` in `~/.claude/settings.json` and recommends setting it to 90000 days to prevent automatic session deletion.
 - Synced all config files from live machine (VS Code settings/keybindings, CLAUDE-djtl, CodexBar).
 - 15 automated tests for merge functions.
+- Added CHANGELOG.md.
+- Added `test-merge.sh` and `codexbar/` to CLAUDE.md structure.
+- Czech README for non-technical users, English version moved to README-en.md.
 
 ## 2026-03-21
 
