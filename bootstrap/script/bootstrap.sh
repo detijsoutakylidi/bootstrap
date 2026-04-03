@@ -674,6 +674,12 @@ configure_devbase() {
     merge_lines_config "$GITIGNORE_SRC" "$GITIGNORE_DST" "Global gitignore"
   fi
   git config --global core.excludesFile "$GITIGNORE_DST"
+
+  # Allow file:// transport for git submodules (local library sharing via knihovnik).
+  # Blocked by default since Git 2.38.1 (CVE-2022-39253) to prevent exfiltration
+  # via malicious .gitmodules in cloned repos. Safe for our use — we only add
+  # submodules from our own local projects.
+  git config --global protocol.file.allow always
 }
 
 configure_terminal() {

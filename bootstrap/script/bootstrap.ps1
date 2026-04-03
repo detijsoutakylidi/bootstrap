@@ -336,6 +336,10 @@ function Configure-Base {
       git config --global core.excludesFile $GitignoreDst
     }
   }
+
+  # Allow file:// transport for git submodules (local library sharing via knihovnik).
+  # Blocked by default since Git 2.38.1 (CVE-2022-39253). Safe for our use.
+  git config --global protocol.file.allow always
 }
 
 function Configure-Terminal {
