@@ -19,6 +19,7 @@ bootstrap/                         # Subdirectory (not the project root)
     ├── bootstrap.sh               # macOS: bash <(curl -fsSL <raw-url>)
     ├── bootstrap.ps1              # Windows: irm <raw-url> | iex
     ├── test-merge.sh              # Tests for merge functions (bash test-merge.sh)
+    ├── test-bootstrap.sh          # Tests for bootstrap logic (bash test-bootstrap.sh)
     └── config/
         ├── git/
         │   └── gitignore_global

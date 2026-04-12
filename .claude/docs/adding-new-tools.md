@@ -71,7 +71,14 @@ Add to the SECTIONS string builder:
 $SEC_TOOLNAME && SECTIONS="${SECTIONS}toolname "
 ```
 
-### 7. Update docs
+### 7. Add tests
+
+Add detection and configuration tests to `test-bootstrap.sh`:
+- Install detection: mock the existence check, verify skip/install branch
+- Configure logic: mock system commands, verify correct behavior for each decision path
+- Follow the existing mock pattern: `create_mock cmd exit_code stdout`
+
+### 8. Update docs
 
 - `CLAUDE.md` — structure tree, run section, flags
 - `CHANGELOG.md` — entry for today

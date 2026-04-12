@@ -57,3 +57,14 @@ The Python merge helper handles JSONC (strips `//` comments and trailing commas)
 ## Version Stamp
 
 Each script embeds a `BOOTSTRAP_BUILD` timestamp (e.g. `260312-2246`). When run from a local checkout, the git hash is appended (`260312-2246 a1b2c3d`). For curl runs, only the timestamp shows — enough to verify you're running the right version through CDN caching.
+
+## Testing
+
+Two test files, both using a custom bash harness (no external framework):
+
+- **`test-merge.sh`** — 15 tests for the merge system (JSON object/array, JSONC parsing, line-based)
+- **`test-bootstrap.sh`** — 72 tests for bootstrap logic (JSONC parser edges, argument parsing, fetch_config, install detection, file associations, session retention, CLAUDE.md inclusion, terminal prompt, merge edge cases, Herd hosts)
+
+Tests use PATH-prepended mock commands to intercept `brew`, `duti`, `curl`, etc. without side effects. JSONC/merge tests extract the embedded Python via `sed` and run it with `MERGE_TEST=1` to redirect `/dev/tty` to stdin.
+
+Run: `bash bootstrap/script/test-merge.sh && bash bootstrap/script/test-bootstrap.sh`
