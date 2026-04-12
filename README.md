@@ -34,6 +34,7 @@ bash <(curl -fsSL https://djtl.cz/gh/bootstrap.sh)
 - Nastaví **editor** — motiv, klávesové zkratky, rozšíření
 - Nastaví **terminál** — barevný profil a prompt
 - Nastaví **přiřazení souborů** — .json, .md a další se budou otvírat ve VS Code
+- Volitelně nainstaluje **Laravel Herd** a nastaví `.private` doménu pro lokální služby
 
 Skript je bezpečné spustit opakovaně — nic nepřepíše, pokud to neschválíš.
 

@@ -28,13 +28,17 @@ Run specific parts instead of the full bootstrap:
 --install --base --vscode  # install base + vscode only
 ```
 
-Available sections: `--base`, `--vscode`, `--claude`, `--terminal`
+Available sections: `--base`, `--vscode`, `--vscode-assoc`, `--claude`, `--terminal`, `--herd`
 
-Combinable with `--install` / `--configure` and with each other. No section flags = all sections.
+Combinable with `--install` / `--configure` and with each other. No section flags = all default sections (herd is opt-in).
+
+### `--herd`
+
+Installs Laravel Herd and configures `.private` TLD wildcard (all `*.private` → localhost via dnsmasq + macOS resolver). Opt-in only — not included in the default set. Also offered interactively via `--extended`.
 
 ### `--extended`
 
-Enables interactive prompts for optional items (e.g., optional VS Code extensions like Intelephense, Toggle Quotes, Terraform, Pencil). Without this flag, only essential items are installed.
+Enables interactive prompts for optional items (e.g., optional VS Code extensions like Intelephense, Toggle Quotes, Terraform, Pencil, and Laravel Herd). Without this flag, only essential items are installed.
 
 ### Non-admin users
 
@@ -103,7 +107,7 @@ Each script is idempotent — safe to re-run on an already-configured machine.
 - Projects directory (default: `~/Projects`)
 - Essential extensions: Claude Code, Catppuccin Theme, Project Manager, Duplicate Action, SFTP, Peacock, Markdown Editor
 - Optional extensions (with `--extended`): Intelephense (PHP), Toggle Quotes, Terraform, Pencil
-- `settings.json` and `keybindings.json` with skip/overwrite options
+- `settings.json` and `keybindings.json` with skip/overwrite/merge options
 - macOS: file associations (.json, .xml, .js, .vtt, .md, .jsonl, .srt, .pub, .tf, .tfstate via duti)
 
 ### `--claude`
@@ -115,7 +119,21 @@ Each script is idempotent — safe to re-run on an already-configured machine.
 
 **Configure** (user-level):
 - Opens Chrome Web Store for Claude browser extension
+- CodexBar config and preferences (merged by provider ID)
+- CLAUDE-djtl.md company rules (always overwritten)
+- Global `~/.claude/CLAUDE.md` with `@CLAUDE-djtl.md` inclusion
+- Session retention (`cleanupPeriodDays: 90000`)
+- `new-project.sh` script + templates deployed to `~/.claude/scripts/`
 - Displays manual post-install steps (login, auth, connectors)
+
+### `--herd`
+
+**Install only** (requires admin):
+- Laravel Herd (brew cask)
+- `.private` TLD: dnsmasq wildcard (`*.private` → `127.0.0.1`) + macOS resolver
+- Restarts Herd after config changes
+
+Each project registers its own nginx proxy config separately (e.g. `macmail.private` → `127.0.0.1:7210`).
 
 ### `--terminal`
 
