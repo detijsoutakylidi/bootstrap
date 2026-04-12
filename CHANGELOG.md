@@ -2,6 +2,11 @@
 
 <!-- Update this file with every commit. Group entries by date. Keep entries concise — one line per change. -->
 
+## 2026-04-12
+
+- Added `--herd` section: installs Laravel Herd and configures `.private` TLD in `/etc/hosts`. Opt-in only, also offered via `--extended`.
+- Added `.claude/docs/`: architecture, merge system, adding new tools, config files reference, platform differences, inconsistencies.
+
 ## 2026-03-31
 
 - Intelligent config merge: Skip / Overwrite / Merge for VS Code settings, keybindings, CodexBar config, and gitignore. JSON merge uses embedded Python for key-based diffing with JSONC support. Line-based merge for gitignore. All bash 3.2 compatible.

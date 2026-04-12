@@ -416,6 +416,7 @@ SEC_VSCODE=false
 SEC_VSCODE_ASSOC=false
 SEC_CLAUDE=false
 SEC_TERMINAL=false
+SEC_HERD=false
 SECTION_SPECIFIED=false
 EXTENDED=false
 
@@ -428,10 +429,11 @@ while [[ $# -gt 0 ]]; do
     --vscode-assoc) SEC_VSCODE_ASSOC=true; SECTION_SPECIFIED=true ;;
     --claude)    SEC_CLAUDE=true; SECTION_SPECIFIED=true ;;
     --terminal)  SEC_TERMINAL=true; SECTION_SPECIFIED=true ;;
+    --herd)      SEC_HERD=true; SECTION_SPECIFIED=true ;;
     --extended)  EXTENDED=true ;;
     *)
       fail "Unknown option: $1"
-      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]"
+      echo "Usage: bash bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--herd] [--extended]"
       exit 1
       ;;
   esac
@@ -463,6 +465,7 @@ do_vscode()    { $SEC_VSCODE; }
 do_vscode_assoc() { $SEC_VSCODE_ASSOC; }
 do_claude()    { $SEC_CLAUDE; }
 do_terminal()  { $SEC_TERMINAL; }
+do_herd()      { $SEC_HERD; }
 
 # ═══════════════════════════════════════════════════════════════
 # INSTALL PHASE
@@ -655,6 +658,46 @@ install_claude() {
     else
       fail "CodexBar install failed"
     fi
+  fi
+}
+
+install_herd() {
+  # ─── Laravel Herd ───
+  section "Laravel Herd"
+
+  if [[ -d "/Applications/Herd.app" ]] || command -v herd &>/dev/null; then
+    skip "Already installed: Herd.app"
+  else
+    info "Installing Laravel Herd via Homebrew…"
+    brew install --cask herd
+    ok "Herd installed"
+    info "Open Herd.app once to complete initial setup, then re-run bootstrap."
+  fi
+
+  # ─── .private TLD hosts ───
+  section ".private TLD hosts"
+
+  HOSTS_SRC="$(fetch_config "herd/private-hosts")"
+  if [[ -z "$HOSTS_SRC" || ! -f "$HOSTS_SRC" ]]; then
+    fail "herd/private-hosts not found (local or remote)"
+    return
+  fi
+
+  HOSTS_ADDED=0
+  while IFS= read -r domain; do
+    # Skip comments and empty lines
+    [[ "$domain" =~ ^#|^$ ]] && continue
+    if grep -q "$domain" /etc/hosts 2>/dev/null; then
+      skip "$domain already in /etc/hosts"
+    else
+      echo "127.0.0.1 $domain" | sudo tee -a /etc/hosts > /dev/null
+      ok "Added $domain → 127.0.0.1 in /etc/hosts"
+      HOSTS_ADDED=$((HOSTS_ADDED + 1))
+    fi
+  done < "$HOSTS_SRC"
+
+  if [[ $HOSTS_ADDED -eq 0 ]]; then
+    skip "All .private hosts already configured"
   fi
 }
 
@@ -1199,6 +1242,16 @@ $SEC_VSCODE && SECTIONS="${SECTIONS}vscode "
 $SEC_VSCODE_ASSOC && SECTIONS="${SECTIONS}vscode-assoc "
 $SEC_CLAUDE && SECTIONS="${SECTIONS}claude "
 $SEC_TERMINAL && SECTIONS="${SECTIONS}terminal "
+$SEC_HERD && SECTIONS="${SECTIONS}herd "
+
+# Offer Herd when running with --extended and it wasn't explicitly requested
+if $EXTENDED && ! $SEC_HERD && do_install; then
+  read -rp "$(echo "${blue}▸${reset} Install Laravel Herd (.private TLD for local services)? [y/N] ")" answer
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+    SEC_HERD=true
+    SECTIONS="${SECTIONS}herd "
+  fi
+fi
 
 # Version stamp — update before each push
 BOOTSTRAP_BUILD="260312-2246"
@@ -1230,6 +1283,7 @@ if do_install; then
   if do_base;   then install_devbase; fi
   if do_vscode; then install_vscode; fi
   if do_claude; then install_claude; fi
+  if do_herd;   then install_herd; fi
 fi
 
 if do_configure; then

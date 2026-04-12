@@ -31,6 +31,8 @@ bootstrap/                         # Subdirectory (not the project root)
         │   ├── new-project.ps1        # Windows project creation script
         │   ├── project-en.md          # CLAUDE.md template for new projects
         │   └── personal-en.md         # CLAUDE-personal-project..md template
+        ├── herd/
+        │   └── private-hosts              # .private domains for /etc/hosts
         ├── codexbar/
         │   ├── config.json            # CodexBar provider config
         │   └── defaults.plist         # CodexBar app preferences
@@ -42,8 +44,10 @@ bootstrap/                         # Subdirectory (not the project root)
 
 ### Run
 
-**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]`
+**macOS:** `bash bootstrap/script/bootstrap.sh [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--herd] [--extended]`
 **Windows:** `.\bootstrap\script\bootstrap.ps1 [--install | --configure] [--base] [--vscode] [--vscode-assoc] [--claude] [--terminal] [--extended]`
+
+`--herd` is opt-in (not in default set). Also offered interactively via `--extended`.
 
 Both scripts auto-detect admin status, are idempotent, and support cloud install (see README).
 
