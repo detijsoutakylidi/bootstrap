@@ -674,30 +674,38 @@ install_herd() {
     info "Open Herd.app once to complete initial setup, then re-run bootstrap."
   fi
 
-  # ─── .private TLD hosts ───
-  section ".private TLD hosts"
+  # ─── .private TLD wildcard ───
+  section ".private TLD"
 
-  HOSTS_SRC="$(fetch_config "herd/private-hosts")"
-  if [[ -z "$HOSTS_SRC" || ! -f "$HOSTS_SRC" ]]; then
-    fail "herd/private-hosts not found (local or remote)"
-    return
+  DNSMASQ_CONF="$HOME/Library/Application Support/Herd/config/dnsmasq/dnsmasq.conf"
+  RESOLVER_FILE="/etc/resolver/private"
+  PRIVATE_ENTRY="address=/.private/127.0.0.1"
+
+  # Add .private to Herd's dnsmasq (wildcard — all *.private → 127.0.0.1)
+  if [[ ! -f "$DNSMASQ_CONF" ]]; then
+    fail "Herd dnsmasq.conf not found — open Herd.app first to initialize"
+  elif grep -qF "$PRIVATE_ENTRY" "$DNSMASQ_CONF" 2>/dev/null; then
+    skip ".private already in dnsmasq.conf"
+  else
+    echo "$PRIVATE_ENTRY" >> "$DNSMASQ_CONF"
+    ok "Added *.private → 127.0.0.1 to dnsmasq.conf"
   fi
 
-  HOSTS_ADDED=0
-  while IFS= read -r domain; do
-    # Skip comments and empty lines
-    [[ "$domain" =~ ^#|^$ ]] && continue
-    if grep -q "$domain" /etc/hosts 2>/dev/null; then
-      skip "$domain already in /etc/hosts"
-    else
-      echo "127.0.0.1 $domain" | sudo tee -a /etc/hosts > /dev/null
-      ok "Added $domain → 127.0.0.1 in /etc/hosts"
-      HOSTS_ADDED=$((HOSTS_ADDED + 1))
-    fi
-  done < "$HOSTS_SRC"
+  # Create macOS resolver so .private queries go to Herd's dnsmasq
+  if [[ -f "$RESOLVER_FILE" ]] && grep -q "nameserver 127.0.0.1" "$RESOLVER_FILE" 2>/dev/null; then
+    skip "/etc/resolver/private already configured"
+  else
+    echo "nameserver 127.0.0.1" | sudo tee "$RESOLVER_FILE" > /dev/null
+    ok "Created /etc/resolver/private"
+  fi
 
-  if [[ $HOSTS_ADDED -eq 0 ]]; then
-    skip "All .private hosts already configured"
+  # Restart Herd to pick up the new dnsmasq config
+  if pgrep -q "Herd" 2>/dev/null; then
+    info "Restarting Herd to apply .private TLD config…"
+    osascript -e 'tell application "Herd" to quit' 2>/dev/null || true
+    sleep 2
+    open -a "Herd"
+    ok "Herd restarted"
   fi
 }
 
@@ -1254,7 +1262,7 @@ if $EXTENDED && ! $SEC_HERD && do_install; then
 fi
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260312-2246"
+BOOTSTRAP_BUILD="260412-1813"
 # Append git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   GIT_HASH=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true

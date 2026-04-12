@@ -4,7 +4,7 @@
 
 ## 2026-04-12
 
-- Added `--herd` section: installs Laravel Herd and configures `.private` TLD in `/etc/hosts`. Opt-in only, also offered via `--extended`.
+- Added `--herd` section: installs Laravel Herd and configures `.private` TLD via dnsmasq wildcard + macOS resolver. Opt-in only, also offered via `--extended`. Restarts Herd after config changes.
 - Added `.claude/docs/`: architecture, merge system, adding new tools, config files reference, platform differences, inconsistencies.
 - Added `test-bootstrap.sh`: 72 tests across 7 categories (JSONC parser, argument parsing, fetch_config, install detection, file associations, session retention, CLAUDE.md inclusion, terminal prompt, merge edge cases, Herd hosts).
 

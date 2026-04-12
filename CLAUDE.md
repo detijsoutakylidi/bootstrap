@@ -32,8 +32,6 @@ bootstrap/                         # Subdirectory (not the project root)
         │   ├── new-project.ps1        # Windows project creation script
         │   ├── project-en.md          # CLAUDE.md template for new projects
         │   └── personal-en.md         # CLAUDE-personal-project..md template
-        ├── herd/
-        │   └── private-hosts              # .private domains for /etc/hosts
         ├── codexbar/
         │   ├── config.json            # CodexBar provider config
         │   └── defaults.plist         # CodexBar app preferences
@@ -81,3 +79,4 @@ Future: track personal global CLAUDE.md in a separate config project and symlink
 - **This repo is public.** Never commit secrets, tokens, API keys, passwords, or machine-specific paths. Config files must use placeholders (`__HOME__`, etc.) — verify before every commit.
 - `config/claude/new-project.sh` and templates are copies from project `projects`. On update, re-copy from the source. Bootstrap deploys to `~/.claude/scripts/` and symlinks into the projects directory.
 - **Changelog:** Update `CHANGELOG.md` with every commit. Group entries by date, one line per change.
+- **Build stamp:** Update `BOOTSTRAP_BUILD` in `bootstrap.sh` (line ~1257) before each push. Format: `YYMMDD-HHMM` (e.g. `260412-1758`).

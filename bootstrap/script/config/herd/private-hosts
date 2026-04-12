@@ -1,3 +1,0 @@
-# Local service domains — resolved via /etc/hosts, proxied by Herd's nginx
-# Each project registers its own nginx proxy config via its install command
-macmail.private

@@ -601,45 +601,38 @@ echo
 echo "${dim}─── G. Herd Section ───${reset}"
 echo
 
-# G1: Domain already in hosts file
-echo "127.0.0.1 macmail.private" > "$TMPDIR/mock_hosts"
-result=$(grep -q "macmail.private" "$TMPDIR/mock_hosts" 2>/dev/null && echo SKIP || echo ADD)
-assert_eq "G1: domain in hosts → skip" "SKIP" "$result"
+# G1: dnsmasq.conf already has .private entry → skip
+mkdir -p "$TMPDIR/herd_config"
+echo -e "address=/.test/127.0.0.1\naddress=/.private/127.0.0.1" > "$TMPDIR/herd_config/dnsmasq.conf"
+result=$(grep -qF "address=/.private/127.0.0.1" "$TMPDIR/herd_config/dnsmasq.conf" && echo SKIP || echo ADD)
+assert_eq "G1: .private in dnsmasq → skip" "SKIP" "$result"
 
-# G2: Domain missing from hosts
-echo "127.0.0.1 localhost" > "$TMPDIR/mock_hosts"
-result=$(grep -q "macmail.private" "$TMPDIR/mock_hosts" 2>/dev/null && echo SKIP || echo ADD)
-assert_eq "G2: domain missing → add" "ADD" "$result"
+# G2: dnsmasq.conf missing .private → would add
+echo "address=/.test/127.0.0.1" > "$TMPDIR/herd_config/dnsmasq.conf"
+result=$(grep -qF "address=/.private/127.0.0.1" "$TMPDIR/herd_config/dnsmasq.conf" && echo SKIP || echo ADD)
+assert_eq "G2: .private missing → add" "ADD" "$result"
 
-# G3: Comment and empty lines in config are skipped
-PROCESSED=()
-while IFS= read -r domain; do
-  [[ "$domain" =~ ^#|^$ ]] && continue
-  PROCESSED+=("$domain")
-done << 'HOSTEOF'
-# This is a comment
+# G3: dnsmasq.conf doesn't exist → fail gracefully
+rm -f "$TMPDIR/herd_config/dnsmasq.conf"
+result=$([[ -f "$TMPDIR/herd_config/dnsmasq.conf" ]] && echo EXISTS || echo MISSING)
+assert_eq "G3: missing dnsmasq.conf detected" "MISSING" "$result"
 
-macmail.private
-HOSTEOF
-assert_eq "G3: only domain processed, comments skipped" "1" "${#PROCESSED[@]}"
-assert_eq "G3: correct domain" "macmail.private" "${PROCESSED[0]}"
+# G4: resolver file already configured → skip
+mkdir -p "$TMPDIR/resolver"
+echo "nameserver 127.0.0.1" > "$TMPDIR/resolver/private"
+result=$(grep -q "nameserver 127.0.0.1" "$TMPDIR/resolver/private" 2>/dev/null && echo SKIP || echo CREATE)
+assert_eq "G4: resolver already configured → skip" "SKIP" "$result"
 
-# G4: Mixed — some present, some missing
-cat > "$TMPDIR/mock_hosts" << 'EOF'
-127.0.0.1 localhost
-127.0.0.1 macmail.private
-EOF
-domains=("macmail.private" "newapp.private" "other.private")
-skip_count=0; add_count=0
-for d in "${domains[@]}"; do
-  if grep -q "$d" "$TMPDIR/mock_hosts" 2>/dev/null; then
-    ((skip_count++))
-  else
-    ((add_count++))
-  fi
-done
-assert_eq "G4: 1 skipped (already present)" "1" "$skip_count"
-assert_eq "G4: 2 would be added" "2" "$add_count"
+# G5: resolver file missing → would create
+rm -f "$TMPDIR/resolver/private"
+result=$([[ -f "$TMPDIR/resolver/private" ]] && grep -q "nameserver 127.0.0.1" "$TMPDIR/resolver/private" 2>/dev/null && echo SKIP || echo CREATE)
+assert_eq "G5: resolver missing → create" "CREATE" "$result"
+
+# G6: dnsmasq.conf append preserves existing entries
+echo "address=/.test/127.0.0.1" > "$TMPDIR/herd_config/dnsmasq.conf"
+echo "address=/.private/127.0.0.1" >> "$TMPDIR/herd_config/dnsmasq.conf"
+test_count=$(grep -c "address=" "$TMPDIR/herd_config/dnsmasq.conf")
+assert_eq "G6: both entries preserved" "2" "$test_count"
 
 # ═══════════════════════════════════════════════════════════
 echo

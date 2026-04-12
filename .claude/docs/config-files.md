@@ -45,8 +45,9 @@ All config files live in `bootstrap/script/config/` and are fetched at runtime v
 
 ## Herd
 
-| File | Target | Merge | Deployed by |
-|------|--------|-------|-------------|
-| `herd/private-hosts` | `/etc/hosts` (append) | per-line check + sudo | `install_herd()` |
+No config files in the repo. `install_herd()` modifies two system files directly:
 
-Entries are `.private` domain names. Each line is checked against `/etc/hosts`; missing entries are appended with `127.0.0.1` via `sudo tee -a`.
+- **Herd's dnsmasq.conf** (`~/Library/Application Support/Herd/config/dnsmasq/dnsmasq.conf`) — appends `address=/.private/127.0.0.1` for wildcard `*.private` resolution
+- **macOS resolver** (`/etc/resolver/private`) — creates with `nameserver 127.0.0.1` so macOS routes `.private` queries to Herd's dnsmasq
+
+Both are idempotent (check before writing). Each project registers its own nginx proxy config with Herd independently.
