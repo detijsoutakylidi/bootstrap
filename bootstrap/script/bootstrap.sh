@@ -997,6 +997,45 @@ configure_vscode_assoc() {
   fi
 
   VSCODE_BUNDLE="com.microsoft.VSCode"
+  local lshandlers_modified=0
+
+  # Fallback for extensions whose only resolved UTI is dynamic (dyn.*) and
+  # therefore not claimed by VS Code's Info.plist — duti can't bind those
+  # because LSSetDefaultRoleHandlerForContentType enforces a conformance
+  # check. Writing directly to LSHandlers with LSHandlerContentTag bypasses
+  # the UTI layer and binds by extension. lsregister -kill -r picks it up.
+  set_lshandlers_extension() {
+    local ext="$1"  # without leading dot
+    local bundle="$2"
+    local plist="$HOME/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist"
+
+    python3 - "$plist" "$ext" "$bundle" <<'PYEOF'
+import sys, plistlib, os
+plist_path, ext, bundle = sys.argv[1], sys.argv[2], sys.argv[3]
+
+if os.path.exists(plist_path):
+    with open(plist_path, 'rb') as f:
+        data = plistlib.load(f)
+else:
+    data = {}
+
+handlers = data.get('LSHandlers', [])
+handlers = [h for h in handlers if not (
+    h.get('LSHandlerContentTag') == ext and
+    h.get('LSHandlerContentTagClass') == 'public.filename-extension'
+)]
+handlers.append({
+    'LSHandlerContentTag': ext,
+    'LSHandlerContentTagClass': 'public.filename-extension',
+    'LSHandlerRoleAll': bundle.lower(),
+})
+data['LSHandlers'] = handlers
+
+os.makedirs(os.path.dirname(plist_path), exist_ok=True)
+with open(plist_path, 'wb') as f:
+    plistlib.dump(data, f)
+PYEOF
+  }
 
   set_file_association() {
     local identifier="$1"
@@ -1056,9 +1095,20 @@ configure_vscode_assoc() {
 
     if echo "$new_bundle" | grep -qiE "com.microsoft.VSCode|Visual Studio Code"; then
       ok "$label → VS Code"
-    else
-      fail "$label → VS Code failed${duti_err:+: $duti_err}"
+      return
     fi
+
+    # duti failed — fall back to direct LSHandlers manipulation for extensions
+    # whose only UTI is dynamic (dyn.*) and not declared by VS Code's Info.plist.
+    if [ "$type" = "ext" ]; then
+      if set_lshandlers_extension "${identifier#.}" "$VSCODE_BUNDLE" 2>/dev/null; then
+        lshandlers_modified=1
+        ok "$label → VS Code (via LSHandlers)"
+        return
+      fi
+    fi
+
+    fail "$label → VS Code failed${duti_err:+: $duti_err}"
   }
 
   # UTI-based associations
@@ -1074,6 +1124,17 @@ configure_vscode_assoc() {
   set_file_association ".pub"      ".pub"      "ext"
   set_file_association ".tf"       ".tf"       "ext"
   set_file_association ".tfstate"  ".tfstate"  "ext"
+
+  # Refresh Launch Services if we wrote to LSHandlers directly. cfprefsd
+  # caches the plist; HUP forces a re-read, then lsregister rebuilds the
+  # LS database so Finder/Open With pick up the new bindings.
+  if [ "$lshandlers_modified" = "1" ]; then
+    info "Refreshing Launch Services database…"
+    killall -HUP cfprefsd 2>/dev/null || true
+    /System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister \
+      -kill -r -domain local -domain system -domain user 2>/dev/null || true
+    ok "Launch Services refreshed"
+  fi
 }
 
 configure_claude() {
@@ -1279,7 +1340,7 @@ if $EXTENDED && ! $SEC_HERD && do_install; then
 fi
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260506-1630"
+BOOTSTRAP_BUILD="260506-1647"
 # Append git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   GIT_HASH=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true

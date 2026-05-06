@@ -4,6 +4,7 @@
 
 ## 2026-05-06
 
+- File associations: when `duti -s` fails for an extension (typically because its only UTI is `dyn.*` and VS Code's Info.plist doesn't claim it), fall back to writing `LSHandlers` directly with `LSHandlerContentTag` (extension-keyed binding that bypasses the UTI conformance check). Refresh Launch Services via `cfprefsd` HUP + `lsregister -kill -r` once at the end if the plist was touched. Fixes `.jsonl`/`.srt`/`.pub`/`.tf`/`.tfstate` not binding on fresh machines.
 - File associations: verify binding via `duti -d/-x` after `duti -s` and suppress harmless `-50` errors emitted for dynamic UTIs (e.g. `dyn.*` for `.md` on fresh machines that VS Code's Info.plist doesn't claim). Surface a real failure only when the static UTI binding didn't take.
 
 ## 2026-04-12
