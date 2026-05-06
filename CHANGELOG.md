@@ -2,6 +2,10 @@
 
 <!-- Update this file with every commit. Group entries by date. Keep entries concise — one line per change. -->
 
+## 2026-05-06
+
+- File associations: verify binding via `duti -d/-x` after `duti -s` and suppress harmless `-50` errors emitted for dynamic UTIs (e.g. `dyn.*` for `.md` on fresh machines that VS Code's Info.plist doesn't claim). Surface a real failure only when the static UTI binding didn't take.
+
 ## 2026-04-12
 
 - Added `--herd` section: installs Laravel Herd and configures `.private` TLD via dnsmasq wildcard + macOS resolver. Opt-in only, also offered via `--extended`. Restarts Herd after config changes.

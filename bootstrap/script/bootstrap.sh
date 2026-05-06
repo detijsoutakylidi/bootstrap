@@ -1040,8 +1040,25 @@ configure_vscode_assoc() {
       fi
     fi
 
-    duti -s "$VSCODE_BUNDLE" "$identifier" all
-    ok "$label → VS Code"
+    # Capture stderr — duti emits -50 for dynamic UTIs (dyn.*) that VS Code's
+    # Info.plist doesn't claim. Harmless if the static UTI binding succeeds.
+    local duti_err
+    duti_err=$(duti -s "$VSCODE_BUNDLE" "$identifier" all 2>&1 >/dev/null) || true
+
+    # Verify the binding took by re-querying
+    local new_bundle=""
+    if [ "$type" = "ext" ]; then
+      new_bundle=$(duti -x "${identifier#.}" 2>/dev/null | sed -n '3p' || true)
+      [ -z "$new_bundle" ] && new_bundle=$(duti -x "${identifier#.}" 2>/dev/null | head -1 || true)
+    else
+      new_bundle=$(duti -d "$identifier" 2>/dev/null | head -1 || true)
+    fi
+
+    if echo "$new_bundle" | grep -qiE "com.microsoft.VSCode|Visual Studio Code"; then
+      ok "$label → VS Code"
+    else
+      fail "$label → VS Code failed${duti_err:+: $duti_err}"
+    fi
   }
 
   # UTI-based associations
@@ -1262,7 +1279,7 @@ if $EXTENDED && ! $SEC_HERD && do_install; then
 fi
 
 # Version stamp — update before each push
-BOOTSTRAP_BUILD="260412-1813"
+BOOTSTRAP_BUILD="260506-1630"
 # Append git hash when running from local checkout
 if [[ -n "$SCRIPT_DIR" ]] && command -v git &>/dev/null && (cd "$SCRIPT_DIR" && git rev-parse --git-dir &>/dev/null); then
   GIT_HASH=$(cd "$SCRIPT_DIR" && git rev-parse --short HEAD 2>/dev/null) || true
