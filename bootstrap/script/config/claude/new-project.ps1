@@ -43,31 +43,8 @@ $personalTemplate = Get-Content (Join-Path $ScriptDir "personal-en.md") -Raw
 $personalTemplate = $personalTemplate -replace '\{\{PROJECT_NAME\}\}', $ProjectName
 $personalTemplate | Set-Content "CLAUDE-personal-project..md" -Encoding UTF8
 
-# Symlinks to global CLAUDE files
-$GlobalDjtl = Join-Path $env:USERPROFILE ".claude\CLAUDE-djtl.md"
-$GlobalPersonal = Join-Path $env:USERPROFILE ".claude\CLAUDE.md"
-
-$canSymlink = $false
-try {
-  # Test if we can create symlinks (requires Developer Mode or admin)
-  $testLink = Join-Path $ProjectDir ".symlink-test"
-  $testTarget = Join-Path $ProjectDir "CLAUDE.md"
-  New-Item -ItemType SymbolicLink -Path $testLink -Target $testTarget -ErrorAction Stop | Out-Null
-  Remove-Item $testLink
-  $canSymlink = $true
-} catch {
-  $canSymlink = $false
-}
-
-if ($canSymlink) {
-  New-Item -ItemType SymbolicLink -Path "CLAUDE-djtl-global..md" -Target $GlobalDjtl | Out-Null
-  New-Item -ItemType SymbolicLink -Path "CLAUDE-personal-global..md" -Target $GlobalPersonal | Out-Null
-} else {
-  Write-Host "[WARN] Cannot create symlinks (enable Developer Mode or run as admin)." -ForegroundColor Yellow
-  Write-Host "[WARN] Copying global CLAUDE files instead. Run bootstrap to update." -ForegroundColor Yellow
-  if (Test-Path $GlobalDjtl) { Copy-Item $GlobalDjtl "CLAUDE-djtl-global..md" }
-  if (Test-Path $GlobalPersonal) { Copy-Item $GlobalPersonal "CLAUDE-personal-global..md" }
-}
+# Global personal + company prefs are auto-loaded from ~/.claude/rules/ — no per-project
+# symlinks needed anymore (they were gitignored stubs and created project spam).
 
 git add -A
 git commit -q -m "Initial project setup"
@@ -76,6 +53,4 @@ Write-Host "Created $ProjectDir"
 Write-Host "  - git initialized"
 Write-Host "  - .gitignore created"
 Write-Host "  - CLAUDE.md created"
-Write-Host "  - CLAUDE-djtl-global..md -> $GlobalDjtl"
-Write-Host "  - CLAUDE-personal-global..md -> $GlobalPersonal"
 Write-Host "  - CLAUDE-personal-project..md created (gitignored)"

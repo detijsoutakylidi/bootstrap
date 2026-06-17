@@ -29,12 +29,12 @@ All config files live in `bootstrap/script/config/` and are fetched at runtime v
 
 | File | Target | Merge | Deployed by |
 |------|--------|-------|-------------|
-| `claude/CLAUDE-djtl.md` | `~/.claude/CLAUDE-djtl.md` | **always overwrite** | `configure_claude()` |
+| `claude/CLAUDE-djtl.md` | `~/.claude/rules/djtl.md` | **copy** (skip if symlink) | `configure_claude()` |
 | `claude/new-project.sh` | `~/.claude/scripts/new-project.sh` | always overwrite | `configure_claude()` |
 | `claude/project-en.md` | `~/.claude/scripts/project-en.md` | always overwrite | `configure_claude()` |
 | `claude/personal-en.md` | `~/.claude/scripts/personal-en.md` | always overwrite | `configure_claude()` |
 
-**CLAUDE-djtl.md** is company-enforced — no merge, no ask. `new-project.sh` and templates are copies from the `projects` repo — re-copy from source on update.
+**CLAUDE-djtl.md** is company-enforced. It deploys as a plain copy into `~/.claude/rules/djtl.md` (auto-loaded globally, no `@` import — the old `@CLAUDE-djtl.md` mechanism is retired). Canonical source is the **`global`** project (`global/company/CLAUDE.md`); the file bundled here is a periodic snapshot of it. On the source (Martin's) machine the deploy target is a live symlink to `global/company/CLAUDE.md`, so bootstrap detects the symlink and skips it. `new-project.sh` and templates are copies from the `projects` repo — re-copy from source on update.
 
 ## CodexBar
 

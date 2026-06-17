@@ -120,8 +120,8 @@ Each script is idempotent — safe to re-run on an already-configured machine.
 **Configure** (user-level):
 - Opens Chrome Web Store for Claude browser extension
 - CodexBar config and preferences (merged by provider ID)
-- CLAUDE-djtl.md company rules (always overwritten)
-- Global `~/.claude/CLAUDE.md` with `@CLAUDE-djtl.md` inclusion
+- Company rules deployed as a copy to `~/.claude/rules/djtl.md` (auto-loaded; skipped if it's a symlink)
+- Personal `~/.claude/CLAUDE.md` stub seeded only if missing
 - Session retention (`cleanupPeriodDays: 90000`)
 - `new-project.sh` script + templates deployed to `~/.claude/scripts/`
 - Displays manual post-install steps (login, auth, connectors)

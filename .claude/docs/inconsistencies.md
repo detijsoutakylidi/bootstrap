@@ -22,9 +22,9 @@ This is documented in `create.md` but there's no tracking issue.
 
 CodexBar `config.json` has a top-level `{"providers": [...]}` structure. The script merges it as `array:id`, which works because it passes the whole content. But if the file ever gains top-level keys beyond `providers`, the array merge would fail. Should probably be `object` merge with special handling for the `providers` array — or just document that it only works for the current structure.
 
-## CLAUDE-djtl.md Output Style Section Inconsistency
+## CLAUDE-djtl.md drift between bootstrap copy and source (RESOLVED 2026-06-17)
 
-The repo's `config/claude/CLAUDE-djtl.md` has a simplified Output Style section (2 bullet points), while `~/.claude/CLAUDE-djtl.md` (the global file loaded by Claude Code) has the same. But the user's personal `~/.claude/CLAUDE.md` has a more detailed version in `CLAUDE-djtl.md` (referenced via `@`). Since bootstrap always overwrites, user edits to the company rules file get lost. This is by design but worth noting.
+Previously the company rules were edited in `~/.claude/CLAUDE-djtl.md` (referenced via `@` from `~/.claude/CLAUDE.md`), while bootstrap always overwrote that file from its own bundled copy — so live edits got clobbered, and the bundled copy could drift from what was actually loaded. Resolved by making the **`global`** project the single canonical source (`global/company/CLAUDE.md`): on the source machine `~/.claude/rules/djtl.md` symlinks to it (bootstrap skips symlinks), and bootstrap's bundled `config/claude/CLAUDE-djtl.md` is a periodic snapshot refreshed from global (see update.md Step 9). The `@` mechanism is retired in favour of `~/.claude/rules/`.
 
 ## update.md References resolve-resource Skill
 

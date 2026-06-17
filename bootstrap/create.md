@@ -24,7 +24,7 @@ Combined from four individual setup scripts (now deleted — consolidated here):
 - **File associations in install phase (Windows)**: `assoc`/`ftype` require admin, so file associations are in Install-Vscode (not Configure-Vscode).
 - **Idempotent**: Every install checks if already present and skips. Every config step compares before overwriting. Config updates offer Skip / Overwrite / Merge (intelligent key-based merge for JSON via embedded Python, line-based merge for gitignore).
 - **PS1 out of sync**: `bootstrap.ps1` still uses the old Skip/Overwrite logic for config files. The merge functions (`merge_lines_config`, `merge_json_config`) were only added to `bootstrap.sh`. Port when Windows testing resumes.
-- **CLAUDE-djtl.md**: Always overwritten — company-enforced rules, no skip/ask. Bootstrap ensures global `~/.claude/CLAUDE.md` exists and includes `@CLAUDE-djtl.md` (auto-adds if missing).
+- **CLAUDE-djtl.md**: Company-enforced rules. Deployed as a plain copy to `~/.claude/rules/djtl.md` (auto-loaded globally — the old `@CLAUDE-djtl.md` import is retired). Canonical source is the `global` project (`global/company/CLAUDE.md`); the bundled file is a periodic snapshot. On the source machine the target is a live symlink, so bootstrap skips it. Bootstrap seeds a personal `~/.claude/CLAUDE.md` stub only if none exists.
 - **new-project scripts**: Deployed to `~/.claude/scripts/` with templates, symlinked into projects directory for easy access. On Windows, symlink creation requires Developer Mode or admin — falls back to copy with warning.
 - **Execution order**: Install: base → vscode → claude. Configure: base → terminal → vscode → claude.
 
@@ -44,7 +44,7 @@ bootstrap/
         │   ├── Pro.terminal                    # macOS Terminal.app profile
         │   └── windows-terminal-profile.json   # Windows Terminal color scheme + defaults
         ├── claude/
-        │   ├── CLAUDE-djtl.md         # Company rules (deployed to ~/.claude/, always overwritten)
+        │   ├── CLAUDE-djtl.md         # Company rules snapshot from global/company (deployed as copy to ~/.claude/rules/djtl.md)
         │   ├── new-project.sh         # macOS project creation (copied from project projects)
         │   ├── new-project.ps1        # Windows project creation (symlink fallback to copy)
         │   ├── project-en.md          # CLAUDE.md template for new projects

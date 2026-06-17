@@ -32,7 +32,7 @@ config/vscode/settings.json          →  ~/Library/.../Code/User/settings.json
         placeholders)
 
 config/git/gitignore_global           →  ~/.gitignore_global
-config/claude/CLAUDE-djtl.md          →  ~/.claude/CLAUDE-djtl.md (always overwrite)
+config/claude/CLAUDE-djtl.md          →  ~/.claude/rules/djtl.md (copy; skip if symlink. Source: global/company/CLAUDE.md)
 config/codexbar/config.json           →  ~/.codexbar/config.json
 config/herd/private-hosts             →  /etc/hosts (append missing entries)
 config/terminal/Pro.terminal          →  Terminal.app defaults database

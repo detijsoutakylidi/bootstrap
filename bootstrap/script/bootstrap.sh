@@ -1174,43 +1174,43 @@ configure_claude() {
   fi
 
   # ─── Claude Code company rules ───
+  # Deployed as a plain copy into ~/.claude/rules/ (auto-loaded globally, no @ import).
+  # Canonical source is the `global` project (company/CLAUDE.md); the file bundled here is
+  # a periodic copy of it (refresh on update — see update.md). On the source machine the
+  # target is a live symlink to global/company/CLAUDE.md and must NOT be overwritten.
   section "Claude Code company rules"
 
   DJTL_SRC="$(fetch_config "claude/CLAUDE-djtl.md")"
-  DJTL_DST="$HOME/.claude/CLAUDE-djtl.md"
+  DJTL_DST="$HOME/.claude/rules/djtl.md"
 
   if [[ -z "$DJTL_SRC" || ! -f "$DJTL_SRC" ]]; then
     fail "claude/CLAUDE-djtl.md not found (local or remote)"
+  elif [[ -L "$DJTL_DST" ]]; then
+    skip "$DJTL_DST is a symlink (source machine) — leaving live link to global/company/CLAUDE.md"
   else
-    mkdir -p "$HOME/.claude"
+    mkdir -p "$HOME/.claude/rules"
     cp "$DJTL_SRC" "$DJTL_DST"
-    ok "CLAUDE-djtl.md deployed → $DJTL_DST"
+    ok "Company rules deployed → $DJTL_DST"
   fi
 
-  # ─── Global CLAUDE.md ───
-  section "Global CLAUDE.md"
+  # ─── Personal CLAUDE.md stub ───
+  # Personal prefs are per-user. The old @CLAUDE-djtl.md import is retired — company rules
+  # now load from ~/.claude/rules/djtl.md. Only seed a stub if nothing exists; never edit
+  # an existing personal file (on the source machine it is a breadcrumb pointing at global).
+  section "Personal CLAUDE.md"
 
   GLOBAL_CLAUDE="$HOME/.claude/CLAUDE.md"
   if [[ ! -f "$GLOBAL_CLAUDE" ]]; then
     cat > "$GLOBAL_CLAUDE" << 'CLAUDEEOF'
-@CLAUDE-djtl.md
-
 # Personal
 
 TODO: Add your personal preferences and communication style here.
+
+(Company-wide rules load separately from ~/.claude/rules/djtl.md.)
 CLAUDEEOF
-    ok "Created ~/.claude/CLAUDE.md with @CLAUDE-djtl.md inclusion"
-  elif ! grep -q "@CLAUDE-djtl.md" "$GLOBAL_CLAUDE" 2>/dev/null; then
-    info "~/.claude/CLAUDE.md exists but does not include @CLAUDE-djtl.md"
-    info "Adding @CLAUDE-djtl.md inclusion at the top…"
-    TMPFILE="$(mktemp)"
-    echo "@CLAUDE-djtl.md" > "$TMPFILE"
-    echo "" >> "$TMPFILE"
-    cat "$GLOBAL_CLAUDE" >> "$TMPFILE"
-    mv "$TMPFILE" "$GLOBAL_CLAUDE"
-    ok "Added @CLAUDE-djtl.md to ~/.claude/CLAUDE.md"
+    ok "Created ~/.claude/CLAUDE.md personal stub"
   else
-    skip "~/.claude/CLAUDE.md already includes @CLAUDE-djtl.md"
+    skip "~/.claude/CLAUDE.md already exists — left untouched"
   fi
 
   # ─── Claude Code settings ───

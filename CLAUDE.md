@@ -27,7 +27,7 @@ bootstrap/                         # Subdirectory (not the project root)
         │   ├── Pro.terminal                    # macOS Terminal.app profile
         │   └── windows-terminal-profile.json   # Windows Terminal color scheme + defaults
         ├── claude/
-        │   ├── CLAUDE-djtl.md         # Company-enforced Claude Code rules (deployed to ~/.claude/)
+        │   ├── CLAUDE-djtl.md         # Company-enforced rules snapshot from global/company (deployed as copy to ~/.claude/rules/djtl.md)
         │   ├── new-project.sh         # macOS project creation script (copied from project projects)
         │   ├── new-project.ps1        # Windows project creation script
         │   ├── project-en.md          # CLAUDE.md template for new projects
@@ -68,11 +68,11 @@ Reference doc for Laravel Boost setup lives in the `tools` project: `docs/larave
 
 Each scope (global and per-project) uses multiple CLAUDE files auto-loaded by Claude Code:
 
-**Global (`~/.claude/`):** `CLAUDE.md` (personal, includes `@CLAUDE-djtl.md`) + `CLAUDE-djtl.md` (company, always overwritten by bootstrap). The `@` inclusion is required — bootstrap auto-adds it if missing.
+**Global (`~/.claude/`):** Personal + company prefs are auto-loaded from `~/.claude/rules/` (every `*.md` there loads globally, no `@` import). Canonical sources live in the **`global`** project: `global/personal/CLAUDE.md` and `global/company/CLAUDE.md`. On Martin's machine `~/.claude/rules/personal.md` and `~/.claude/rules/djtl.md` are symlinks to those; `~/.claude/CLAUDE.md` + `CLAUDE-djtl.md` remain as breadcrumbs. On any bootstrapped machine, bootstrap deploys a plain copy of the company rules to `~/.claude/rules/djtl.md` (skips if it's a symlink) and seeds a personal `~/.claude/CLAUDE.md` stub. The old `@CLAUDE-djtl.md` import is retired.
 
-**Per-project:** `CLAUDE.md` (committed) + `CLAUDE-personal-project..md` + `CLAUDE-djtl-global..md` → symlink to global + `CLAUDE-personal-global..md` → symlink to global. All `..` files are gitignored via `*..*` in gitignore_global.
+**Per-project:** `CLAUDE.md` (committed) + `CLAUDE-personal-project..md` (gitignored via `*..*`). The per-project `CLAUDE-djtl-global..md` / `CLAUDE-personal-global..md` symlink stubs are no longer created (global prefs now come from `~/.claude/rules/`).
 
-Future: track personal global CLAUDE.md in a separate config project and symlink to `~/.claude/`.
+The `global` config project is the realization of the previously-planned "track personal/company global CLAUDE.md in a separate config project and symlink to `~/.claude/`."
 
 ## Notes
 

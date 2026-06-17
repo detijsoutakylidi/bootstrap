@@ -485,22 +485,24 @@ rm -f "$MOCK_HOME/.claude/settings.json"
 result=$([[ -f "$MOCK_HOME/.claude/settings.json" ]] && echo EXISTS || echo MISSING)
 assert_eq "E8: settings.json missing detected" "MISSING" "$result"
 
-# ─── CLAUDE.md inclusion (E9-E11) ───
+# ─── Company rules deploy + personal stub (E9-E11) ───
 
-# E9: File missing → would create
+# E9: personal CLAUDE.md missing → would create stub
 rm -f "$MOCK_HOME/.claude/CLAUDE.md"
 result=$([[ ! -f "$MOCK_HOME/.claude/CLAUDE.md" ]] && echo CREATE || echo EXISTS)
-assert_eq "E9: CLAUDE.md missing → create" "CREATE" "$result"
+assert_eq "E9: personal CLAUDE.md missing → create stub" "CREATE" "$result"
 
-# E10: File exists without @CLAUDE-djtl.md → prepend
-echo "# My rules" > "$MOCK_HOME/.claude/CLAUDE.md"
-result=$(grep -q "@CLAUDE-djtl.md" "$MOCK_HOME/.claude/CLAUDE.md" 2>/dev/null && echo HAS_IT || echo MISSING)
-assert_eq "E10: CLAUDE.md without inclusion" "MISSING" "$result"
+# E10: rules/djtl.md is a symlink (source machine) → skip, don't overwrite
+mkdir -p "$MOCK_HOME/.claude/rules"
+ln -sf "/some/global/company/CLAUDE.md" "$MOCK_HOME/.claude/rules/djtl.md"
+result=$([[ -L "$MOCK_HOME/.claude/rules/djtl.md" ]] && echo SKIP || echo DEPLOY)
+assert_eq "E10: rules/djtl.md symlink → skip" "SKIP" "$result"
 
-# E11: File already has inclusion → skip
-echo -e "@CLAUDE-djtl.md\n\n# My rules" > "$MOCK_HOME/.claude/CLAUDE.md"
-result=$(grep -q "@CLAUDE-djtl.md" "$MOCK_HOME/.claude/CLAUDE.md" 2>/dev/null && echo HAS_IT || echo MISSING)
-assert_eq "E11: CLAUDE.md with inclusion → skip" "HAS_IT" "$result"
+# E11: rules/djtl.md regular file (or missing) → deploy copy
+rm -f "$MOCK_HOME/.claude/rules/djtl.md"
+echo "# old company rules" > "$MOCK_HOME/.claude/rules/djtl.md"
+result=$([[ ! -L "$MOCK_HOME/.claude/rules/djtl.md" ]] && echo DEPLOY || echo SKIP)
+assert_eq "E11: rules/djtl.md regular file → deploy copy" "DEPLOY" "$result"
 
 # ─── Terminal prompt (E12-E14) ───
 

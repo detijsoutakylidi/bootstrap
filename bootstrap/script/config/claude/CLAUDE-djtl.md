@@ -1,7 +1,5 @@
 # DJTL — Claude Code Rules
 
-<!-- Deployed by bootstrap. Do not edit — update the source in the bootstrap repo. -->
-
 ## Output Style
 - Do small tasks directly via tools; don't hand me commands to paste. For bigger things, offer options and ask.
 - Minimize manual steps: provide clickable links, open local UI (System Settings, Raycast…) directly via `open` command, use code blocks for copy-paste. When directing the user to a settings page or app screen, don't just describe the path — run the `open` command immediately and tell the user what to look for there.

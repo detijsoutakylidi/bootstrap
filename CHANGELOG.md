@@ -2,6 +2,12 @@
 
 <!-- Update this file with every commit. Group entries by date. Keep entries concise — one line per change. -->
 
+## 2026-06-17
+
+- Company rules now deploy as a plain copy to `~/.claude/rules/djtl.md` (auto-loaded, no `@` import) instead of `~/.claude/CLAUDE-djtl.md`. Skips the target if it's a symlink (source machine). The `@CLAUDE-djtl.md` forcing in `~/.claude/CLAUDE.md` is retired; bootstrap now only seeds a personal stub if none exists.
+- Canonical source of company rules moved to the `global` project (`global/company/CLAUDE.md`); bundled `config/claude/CLAUDE-djtl.md` is a periodic snapshot. update.md Step 9 now syncs from global.
+- new-project script + `project-en.md` template: stop creating per-project `CLAUDE-djtl-global..md` / `CLAUDE-personal-global..md` symlink stubs and dropped the collaborator/`@`-inclusion section (global prefs come from `~/.claude/rules/`). Patched `.sh`, `.ps1`, and bundled copies.
+
 ## 2026-05-06
 
 - File associations: when `duti -s` fails for an extension (typically because its only UTI is `dyn.*` and VS Code's Info.plist doesn't claim it), fall back to writing `LSHandlers` directly with `LSHandlerContentTag` (extension-keyed binding that bypasses the UTI conformance check). Refresh Launch Services via `cfprefsd` HUP + `lsregister -kill -r` once at the end if the plist was touched. Fixes `.jsonl`/`.srt`/`.pub`/`.tf`/`.tfstate` not binding on fresh machines.

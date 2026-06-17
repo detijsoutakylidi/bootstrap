@@ -87,8 +87,12 @@ Before syncing, ask the user if they want to clean up their live VS Code config.
 
 ### 9. Compare Claude Code company rules
 
-1. Diff `~/.claude/CLAUDE-djtl.md` against `bootstrap/script/config/claude/CLAUDE-djtl.md`
-2. Show diffs, update stored file with approved changes
+The canonical source is now the **`global`** project (`global/company/CLAUDE.md`), edited and
+committed there continuously. Bootstrap's bundled copy is a periodic snapshot, refreshed here.
+
+1. Diff `global/company/CLAUDE.md` against `bootstrap/script/config/claude/CLAUDE-djtl.md`
+2. Re-copy from `global/company/CLAUDE.md` if different (the global project is the source; the bundled file is derivative)
+3. Note: bootstrap deploys this as a plain **copy** to `~/.claude/rules/djtl.md` (auto-loaded, no `@` import). On the source machine that target is a live symlink to `global/company/CLAUDE.md` and bootstrap skips it.
 
 ### 10. Compare new-project script
 

@@ -562,41 +562,43 @@ function Configure-Claude {
   }
 
   # ─── Claude Code company rules ───
+  # Deployed as a plain copy into ~/.claude/rules/ (auto-loaded globally, no @ import).
+  # Canonical source is the `global` project (company/CLAUDE.md); the bundled file is a periodic
+  # snapshot. On the source machine the target is a live symlink and must NOT be overwritten.
   Write-Head "Claude Code company rules"
 
   $DjtlSrc = Get-Config "claude/CLAUDE-djtl.md"
   $ClaudeDir = Join-Path $env:USERPROFILE ".claude"
-  $DjtlDst = Join-Path $ClaudeDir "CLAUDE-djtl.md"
+  $RulesDir = Join-Path $ClaudeDir "rules"
+  $DjtlDst = Join-Path $RulesDir "djtl.md"
 
   if (-not $DjtlSrc -or -not (Test-Path $DjtlSrc)) {
     Write-Fail "claude/CLAUDE-djtl.md not found (local or remote)"
+  } elseif ((Get-Item $DjtlDst -ErrorAction SilentlyContinue).LinkType -eq "SymbolicLink") {
+    Write-Skip "$DjtlDst is a symlink (source machine) -- leaving live link to global/company/CLAUDE.md"
   } else {
-    if (-not (Test-Path $ClaudeDir)) { New-Item -ItemType Directory -Path $ClaudeDir -Force | Out-Null }
+    if (-not (Test-Path $RulesDir)) { New-Item -ItemType Directory -Path $RulesDir -Force | Out-Null }
     Copy-Item $DjtlSrc $DjtlDst -Force
-    Write-Ok "CLAUDE-djtl.md deployed -> $DjtlDst"
+    Write-Ok "Company rules deployed -> $DjtlDst"
   }
 
-  # ─── Global CLAUDE.md ───
-  Write-Head "Global CLAUDE.md"
+  # ─── Personal CLAUDE.md stub ───
+  # Personal prefs are per-user. The old @CLAUDE-djtl.md import is retired -- company rules now load
+  # from ~/.claude/rules/djtl.md. Only seed a stub if nothing exists; never edit an existing file.
+  Write-Head "Personal CLAUDE.md"
 
   $GlobalClaude = Join-Path $ClaudeDir "CLAUDE.md"
   if (-not (Test-Path $GlobalClaude)) {
     @"
-@CLAUDE-djtl.md
-
 # Personal
 
 TODO: Add your personal preferences and communication style here.
+
+(Company-wide rules load separately from ~/.claude/rules/djtl.md.)
 "@ | Set-Content -Path $GlobalClaude -Encoding UTF8
-    Write-Ok "Created ~/.claude/CLAUDE.md with @CLAUDE-djtl.md inclusion"
-  } elseif (-not (Select-String -Path $GlobalClaude -Pattern "@CLAUDE-djtl.md" -Quiet)) {
-    Write-Info "~/.claude/CLAUDE.md exists but does not include @CLAUDE-djtl.md"
-    Write-Info "Adding @CLAUDE-djtl.md inclusion at the top..."
-    $existing = Get-Content $GlobalClaude -Raw
-    "@CLAUDE-djtl.md`n`n$existing" | Set-Content -Path $GlobalClaude -Encoding UTF8
-    Write-Ok "Added @CLAUDE-djtl.md to ~/.claude/CLAUDE.md"
+    Write-Ok "Created ~/.claude/CLAUDE.md personal stub"
   } else {
-    Write-Skip "~/.claude/CLAUDE.md already includes @CLAUDE-djtl.md"
+    Write-Skip "~/.claude/CLAUDE.md already exists -- left untouched"
   }
 
   # ─── new-project script ───
