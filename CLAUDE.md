@@ -2,11 +2,6 @@
 
 Project for creating and updating setup scripts
 
-## Notes for collaborators
-
-- This file is committed and shared.
-- Put your PERSONAL instructions for Claude in @CLAUDE-personal-project..md file.
-
 ## Structure
 
 Project root is the repo root. Scripts live under `bootstrap/`.
