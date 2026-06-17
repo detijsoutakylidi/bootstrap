@@ -7,6 +7,7 @@
 - Company rules now deploy as a plain copy to `~/.claude/rules/djtl.md` (auto-loaded, no `@` import) instead of `~/.claude/CLAUDE-djtl.md`. Skips the target if it's a symlink (source machine). The `@CLAUDE-djtl.md` forcing in `~/.claude/CLAUDE.md` is retired; bootstrap now only seeds a personal stub if none exists.
 - Canonical source of company rules moved to the `global` project (`global/company/CLAUDE.md`); bundled `config/claude/CLAUDE-djtl.md` is a periodic snapshot. update.md Step 9 now syncs from global.
 - new-project script + `project-en.md` template: stop creating per-project `CLAUDE-djtl-global..md` / `CLAUDE-personal-global..md` symlink stubs and dropped the collaborator/`@`-inclusion section (global prefs come from `~/.claude/rules/`). Patched `.sh`, `.ps1`, and bundled copies.
+- new-project also stops creating the now-unused `CLAUDE-personal-project..md` scratch file; deleted the `personal-en.md` template and its deploy refs (only `project-en.md` is deployed now). Patched `.sh`/`.ps1` + bundled copies + docs.
 
 ## 2026-05-06
 

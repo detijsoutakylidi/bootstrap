@@ -36,11 +36,9 @@ sed -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
     -e "s/{{DESCRIPTION}}/${DESCRIPTION:-TODO: Add project description}/g" \
     "$SCRIPT_DIR/project-en.md" > CLAUDE.md
 
-sed -e "s/{{PROJECT_NAME}}/$PROJECT_NAME/g" \
-    "$SCRIPT_DIR/personal-en.md" > "CLAUDE-personal-project..md"
-
-# Global personal + company prefs are auto-loaded from ~/.claude/rules/ — no per-project
-# symlinks needed anymore (they were gitignored stubs and created project spam).
+# Personal + company prefs are auto-loaded globally from ~/.claude/rules/ — no per-project
+# CLAUDE files beyond the shared CLAUDE.md (the old global symlink stubs and the unused
+# CLAUDE-personal-project..md scratch file are no longer created).
 
 git add -A
 git commit -q -m "Initial project setup"
@@ -49,6 +47,5 @@ echo "Created $PROJECT_DIR"
 echo "  - git initialized"
 echo "  - .gitignore created"
 echo "  - CLAUDE.md created"
-echo "  - CLAUDE-personal-project..md created (gitignored)"
 
 open -a "Visual Studio Code" .

@@ -98,7 +98,7 @@ committed there continuously. Bootstrap's bundled copy is a periodic snapshot, r
 
 1. Diff `new-project.sh` from project `projects` (`/scripts/new-project.sh`) against `bootstrap/script/config/claude/new-project.sh`
 2. Re-copy from projects repo source if different (bootstrap copy is derivative)
-3. Also re-copy templates: `project-en.md`, `personal-en.md`
+3. Also re-copy the template: `project-en.md`
 
 ### 11. Check install methods
 

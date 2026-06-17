@@ -38,13 +38,9 @@ $descriptionText = if ($Description) { $Description } else { "TODO: Add project 
 $projectTemplate = $projectTemplate -replace '\{\{DESCRIPTION\}\}', $descriptionText
 $projectTemplate | Set-Content "CLAUDE.md" -Encoding UTF8
 
-# CLAUDE-personal-project..md from template
-$personalTemplate = Get-Content (Join-Path $ScriptDir "personal-en.md") -Raw
-$personalTemplate = $personalTemplate -replace '\{\{PROJECT_NAME\}\}', $ProjectName
-$personalTemplate | Set-Content "CLAUDE-personal-project..md" -Encoding UTF8
-
-# Global personal + company prefs are auto-loaded from ~/.claude/rules/ — no per-project
-# symlinks needed anymore (they were gitignored stubs and created project spam).
+# Personal + company prefs are auto-loaded globally from ~/.claude/rules/ — no per-project
+# CLAUDE files beyond the shared CLAUDE.md (the old global symlink stubs and the unused
+# CLAUDE-personal-project..md scratch file are no longer created).
 
 git add -A
 git commit -q -m "Initial project setup"
@@ -53,4 +49,3 @@ Write-Host "Created $ProjectDir"
 Write-Host "  - git initialized"
 Write-Host "  - .gitignore created"
 Write-Host "  - CLAUDE.md created"
-Write-Host "  - CLAUDE-personal-project..md created (gitignored)"

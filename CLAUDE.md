@@ -30,8 +30,7 @@ bootstrap/                         # Subdirectory (not the project root)
         │   ├── CLAUDE-djtl.md         # Company-enforced rules snapshot from global/company (deployed as copy to ~/.claude/rules/djtl.md)
         │   ├── new-project.sh         # macOS project creation script (copied from project projects)
         │   ├── new-project.ps1        # Windows project creation script
-        │   ├── project-en.md          # CLAUDE.md template for new projects
-        │   └── personal-en.md         # CLAUDE-personal-project..md template
+        │   └── project-en.md          # CLAUDE.md template for new projects
         ├── codexbar/
         │   ├── config.json            # CodexBar provider config
         │   └── defaults.plist         # CodexBar app preferences

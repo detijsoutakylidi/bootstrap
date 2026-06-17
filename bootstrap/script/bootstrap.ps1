@@ -613,14 +613,12 @@ TODO: Add your personal preferences and communication style here.
     Copy-Item $NewProjSrc (Join-Path $ScriptsDst "new-project.sh") -Force
     Write-Ok "new-project.sh deployed -> $ScriptsDst\new-project.sh"
 
-    # Copy templates alongside the script
-    foreach ($tmpl in @("project-en.md", "personal-en.md")) {
-      $TmplSrc = Get-Config "claude/$tmpl"
-      if ($TmplSrc -and (Test-Path $TmplSrc)) {
-        Copy-Item $TmplSrc (Join-Path $ScriptsDst $tmpl) -Force
-      }
+    # Copy the CLAUDE.md template alongside the script
+    $TmplSrc = Get-Config "claude/project-en.md"
+    if ($TmplSrc -and (Test-Path $TmplSrc)) {
+      Copy-Item $TmplSrc (Join-Path $ScriptsDst "project-en.md") -Force
     }
-    Write-Ok "Templates deployed alongside new-project.sh"
+    Write-Ok "Template deployed alongside new-project.sh"
   }
 
   # ─── new-project PowerShell script ───

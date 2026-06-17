@@ -1263,14 +1263,12 @@ CLAUDEEOF
     cp "$NEWPROJ_SRC" "$SCRIPTS_DST/new-project.sh"
     ok "new-project.sh deployed → $SCRIPTS_DST/new-project.sh"
 
-    # Copy templates alongside the script
-    for tmpl in project-en.md personal-en.md; do
-      TMPL_SRC="$(fetch_config "claude/$tmpl")"
-      if [[ -n "$TMPL_SRC" && -f "$TMPL_SRC" ]]; then
-        cp "$TMPL_SRC" "$SCRIPTS_DST/$tmpl"
-      fi
-    done
-    ok "Templates deployed alongside new-project.sh"
+    # Copy the CLAUDE.md template alongside the script
+    TMPL_SRC="$(fetch_config "claude/project-en.md")"
+    if [[ -n "$TMPL_SRC" && -f "$TMPL_SRC" ]]; then
+      cp "$TMPL_SRC" "$SCRIPTS_DST/project-en.md"
+    fi
+    ok "Template deployed alongside new-project.sh"
 
     # Symlink into projects directory for easy access
     if [[ -n "$PROJECTS_DIR" && -d "$PROJECTS_DIR" ]]; then

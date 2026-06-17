@@ -47,8 +47,7 @@ bootstrap/
         │   ├── CLAUDE-djtl.md         # Company rules snapshot from global/company (deployed as copy to ~/.claude/rules/djtl.md)
         │   ├── new-project.sh         # macOS project creation (copied from project projects)
         │   ├── new-project.ps1        # Windows project creation (symlink fallback to copy)
-        │   ├── project-en.md          # CLAUDE.md template for new projects
-        │   └── personal-en.md         # CLAUDE-personal-project..md template
+        │   └── project-en.md          # CLAUDE.md template for new projects
         ├── codexbar/
         │   ├── config.json            # Provider config (~/.codexbar/config.json)
         │   └── defaults.plist         # App preferences (defaults domain, merged on import)
