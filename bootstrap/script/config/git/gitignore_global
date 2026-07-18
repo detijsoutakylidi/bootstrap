@@ -11,3 +11,7 @@ __pycache__/
 
 # Kyblik — bucket folder for files without a clear home yet
 kyblik/
+
+# Skill working folders — transient notes (standards inbox, skill feedback); durable outcome = skill edits + changelogs
+skills/*/data/inbox/*.md
+skills/*/feedback/*.md
