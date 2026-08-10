@@ -62,7 +62,28 @@ Reference doc for Laravel Boost setup lives in the `tools` project: `docs/larave
 
 Each scope (global and per-project) uses multiple CLAUDE files auto-loaded by Claude Code:
 
-**Global (`~/.claude/`):** Personal + company prefs are auto-loaded from `~/.claude/rules/` (every `*.md` there loads globally, no `@` import). Canonical sources live in the **`global`** project: `global/personal/CLAUDE.md` and `global/company/CLAUDE.md`. On Martin's machine `~/.claude/rules/personal.md` and `~/.claude/rules/djtl.md` are symlinks to those; `~/.claude/CLAUDE.md` + `CLAUDE-djtl.md` remain as breadcrumbs. On any bootstrapped machine, bootstrap deploys a plain copy of the company rules to `~/.claude/rules/djtl.md` (skips if it's a symlink) and seeds a personal `~/.claude/CLAUDE.md` stub. The old `@CLAUDE-djtl.md` import is retired.
+**Global (`~/.claude/`):** Personal + company prefs are auto-loaded from `~/.claude/rules/` (every `*.md` there loads globally, no `@` import). Canonical sources live in the **`global`** project. On any bootstrapped machine, bootstrap deploys a plain copy of the company rules to `~/.claude/rules/djtl.md` (skips if it's a symlink) and seeds a personal `~/.claude/CLAUDE.md` stub. The old `@CLAUDE-djtl.md` import is retired.
+
+> ### ⚠️ STALE vs `global` — bootstrap is out of date (noted 2026-08-11)
+>
+> **Bootstrap is not in use right now, and this is deliberately not being fixed yet.** Read this
+> before running or editing bootstrap; do not assume the paragraph above is current.
+>
+> The `global` project restructured on 2026-08-10 and no longer produces the files bootstrap expects:
+>
+> | bootstrap expects | `global` actually has now |
+> |---|---|
+> | single `global/company/CLAUDE.md` | `global/rules/djtl/*.md` — **8 topic files** |
+> | single `global/personal/CLAUDE.md` | `global/rules/personal/*.md` — **7 topic files** |
+> | deploy target `~/.claude/rules/djtl.md` | on Martin's machine: `~/.claude/rules/djtl/` — a **directory** symlink |
+> | seeds a `~/.claude/CLAUDE.md` stub | deleted on Martin's machine 2026-08-11 (a user-scope breadcrumb is resident context in every session) |
+>
+> **What the fix will need:** the snapshot step must concatenate `rules/djtl/*.md` into the bundled
+> `config/claude/CLAUDE-djtl.md`, or bootstrap must learn to deploy the folder split. Its skip-if-symlink
+> check must also handle the target being a *directory* symlink, not just a file symlink.
+>
+> **Until then a freshly bootstrapped machine gets company rules frozen at the pre-split snapshot.**
+> Tracked in `global/CLAUDE.md` (Related / open) and `global/.claude/docs/setup.md`.
 
 **Per-project:** `CLAUDE.md` (committed) + `CLAUDE-personal-project..md` (gitignored via `*..*`). The per-project `CLAUDE-djtl-global..md` / `CLAUDE-personal-global..md` symlink stubs are no longer created (global prefs now come from `~/.claude/rules/`).
 
