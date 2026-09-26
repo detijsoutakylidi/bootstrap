@@ -42,6 +42,8 @@ bootstrap/                         # Subdirectory (not the project root)
 
 `--herd` is opt-in (not in default set). Also offered interactively via `--extended`.
 
+**`--herd` is stale as of 2026-09-26 — do not run it on air, and rewrite it before running it anywhere.** Laravel Herd was uninstalled from air that day (it relaunched at login despite its own Launch-at-Login toggle being off, via a root `LaunchDaemon` and a Background Task Manager entry the toggle does not control). Two things in `install_herd()` no longer match reality: it installs Herd at all, and it configures the `.private` TLD by writing into `~/Library/Application Support/Herd/config/dnsmasq/dnsmasq.conf` and restarting Herd.app. `.private` has since moved off Herd entirely — it is served by Homebrew dnsmasq (`/opt/homebrew/sbin/dnsmasq`) reading `~/.djtl/private/dnsmasq/dnsmasq.conf`, with `/etc/resolver/private` pointing at `127.0.0.127` rather than Herd's `127.0.0.1`. So the section would reinstall an unwanted app and write config into a path nothing reads. PHP itself comes from Homebrew (`/opt/homebrew/opt/php@8.5`), selected per project by the `private` shim at `~/.djtl/private/bin/php`; `private`'s own daemons name the versioned Homebrew path directly. `config/boost.json` also still lists Herd MCP as a DJTL default.
+
 Both scripts auto-detect admin status, are idempotent, and support cloud install (see README).
 
 - **create.md** — documents how the scripts were built, use as a template when adding new tools
